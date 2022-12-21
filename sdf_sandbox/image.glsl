@@ -59,7 +59,8 @@ vec3 sdBox(vec2 p, vec2 a, vec2 b){
 void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
     vec2 uv = fragCoord/iResolution.xy;
     vec2 pos = fragCoord;
-    
+    vec2 track = pos - (100.0*cos(iTime)+100.0)*vec2(cos(iTime), sin(iTime));
+
     vec3 col = vec3(0.);
     
     vec2 a, b;
@@ -70,9 +71,9 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
         col += sdLine(pos, a+vec2(i, 0.), b+vec2(0., i), 25.) * uv.xyx;
     }
     
-    col += sdLine(pos, vec2(700., 200.), vec2(750., 250.), 1.) * vec3(0., 1., 0.);
-    col += sdBox(pos, vec2(700., 200.), vec2(750., 250.)) * vec3(1., 0., 0.);
-    col += sdCircle(pos, vec2(700., 200.), 50.) * vec3(0., 0., 1.);
+    col += sdLine(track, vec2(700., 200.), vec2(750., 250.), 1.) * vec3(0., 1., 0.);
+    col += sdBox(track, vec2(700., 200.), vec2(750., 250.)) * vec3(1., 0., 0.);
+    col += sdCircle(track, vec2(700., 200.), 50.) * vec3(0., 0., 1.);
 
     
     // Output to screen
