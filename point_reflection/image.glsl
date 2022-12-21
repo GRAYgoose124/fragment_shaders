@@ -26,7 +26,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord ){
             //z -= (z.xy*d/dist)/(z.yx-dist)*(d);
             z *= length(z);
             dist = d;
-            col += vec3(z, z.y+z.x);
+            col += vec3(z, z.y+z.x); 
         }
     }
   ;

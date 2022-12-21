@@ -1,17 +1,19 @@
-#define DRAW
+//#define DRAW
+#define XY_MAP
+//#define COLOR_PICKER
+
 #include "common.glsl"
 #iChannel0 "self"
 
 // Input Uniforms
 #iUniform float NU = 1.00 in { 0.0, 1.0 } // This will expose a slider to edit the value
 #iUniform float MU = 0.33 in { 0.0, 1.0 } // This will expose a slider to edit the value
-#iUniform float DECAY = 0.99 in { 0.0, 1.0 } // This will expose a slider to edit the value
-
-#iUniform float PHI = 1.0 in { 0.0, 1.0 } // This will expose a slider to edit the value
+#iUniform float PHI = 0.99 in { 0.0, 1.0 } // This will expose a slider to edit the value
 #iUniform float RHO = 1.0 in { 0.0, 1.0 } // This will expose a slider to edit the value
+#iUniform float DECAY = 0.99 in { 0.01, 1.00 } // This will expose a slider to edit the value
 
 #iUniform float tS = 0.1 in { 0.1, 1.0 } // This will expose a slider to edit the value
-#iUniform float tSplit = 0.39 in { 0.1, 1.0 } // This will expose a slider to edit the value
+#iUniform float tSplit = 0.5 in { 0.1, 1.0 } // This will expose a slider to edit the value
 #define Ts sin(iTime*tSplit*tS)
 #define Tc cos(iTime*(1.0-tSplit)*tS)
 
@@ -26,10 +28,25 @@ void init_scene(in vec2 uv, inout vec4 col) {
 }
 
     //// Field Parameters
-// S1|2|3=.87|.13|.13 -> {1: NU 1.0 MU 0.33 RHO 1.0 DECAY 0.9643, 2: NU 1.0 MU 0.33 RHO 1.12, DECAY .98125 }
+#ifdef XY_MAP
 #define S1 (vec4(Ts, Tc, Px, 0.) * PHI)
 #define S2 (vec4(Ts, Tc, Py, 0.) * PHI)
 #define S3 (vec4(Px, Py, Ts*Tc, 0.) * PHI)
+#else
+#ifdef COLOR_PICKER
+#iUniform color3 SC1 = color3(1.0, .0, .0) // This will be editable as a color picker
+#iUniform color3 SC2 = color3(.0, 1.0, .0) // This will be editable as a color picker
+#iUniform color3 SC3 = color3(.0, .0, 1.0) // This will be editable as a color picker
+#define S1 vec4(SC1 * PHI, 0.)
+#define S2 vec4(SC2 * PHI, 0.)
+#define S3 vec4(SC3 * PHI, 0.)
+#else
+// DEFAULT
+#define S1 (vec4(1., .5, .5, 0.) * PHI)
+#define S2 (vec4(.5, -1., .5, 0.) * PHI)
+#define S3 (vec4(.5, .5, 1., 0.) * PHI)
+#endif
+#endif
 
     //// Field Definition
 #define OP(a, b, c) ((a * cos(b)) + (a * sin(c)))
