@@ -1,3 +1,5 @@
+#iUniform float hisT_offset = 0.50 in { 1.0, 100.0 } 
+#iUniform float hisT_S = 1.0 in { 0.01, 1.0 }
 #include "common.glsl"
 
 #define POINTS 1
@@ -100,11 +102,12 @@ vec2 newton_iter(in vec2 z){
     return z - c_recip(sum);
 }
 
+
 void setup(){
     for(int i = 0; i < NROOTS; i++){
-        float rot = float(i+1) * iTime * 0.01;
+        float rot = hash(float(i)) * (hisT_offset+iTime * hisT_S);
         //roots[i] = vec2(rot*sin(rot), rot*cos(rot)); sin(rot+i)
-        roots[i] = vec2(sin(rot), cos(rot));
+        roots[i] = vec2(sin(rot), cos(rot)*1.0-(0.8*sin(rot)));
 
         colors[i] = hueShift(vec3(hash(float(i)),
                                   hash(float(i+1)),

@@ -10,7 +10,7 @@
 #iUniform float MU = 0.33 in {-1.0, 1.0 } 
 #iUniform float XI = 1.0 in { -1.0, 1.0 }
 
-#iUniform float DECAY = 0.00 in { 0.00, 1.00 } 
+#iUniform float DECAY = 0.01 in { 0.00, 1.00 } 
 #iUniform float PHI = 1.0 in { -1.0, 1.0 } 
 #iUniform float RHO = 1.0 in { 0.0, 1.0 } 
 
@@ -62,7 +62,7 @@ void init_scene(in vec2 uv, inout vec4 col) {
 
 #define BRCHG (vec4(P1,  P2,  P3, 0.).yzxw * S1)
 #define RGCHG (vec4(P1,  P2,  P3, 0.).xyzw * S2)
-#define GBCHG (vec4(P1,  P2,  P3, 0.).zxxw * S3)
+#define GBCHG (vec4(P1,  P2,  P3, 0.).zxyw * S3)
 #define CHG (BRCHG + RGCHG + GBCHG)
 
 
