@@ -37,9 +37,9 @@ void init_scene(in vec2 uv, inout vec4 col) {
 #define BR OP(b, r, g)
 #define RG OP(r, g, b)
 #define GB OP(g, b, r)
-#define P1 ((BR * XI) - (sin(GB * NU) * cos(RG * MU)))
-#define P2 ((RG * NU) - (sin(GB * MU) * cos(GB * XI)))
-#define P3 ((GB * MU) - (sin(GB * XI) * cos(BR * NU)))
+#define P1 ((BR * XI) - (sin(GB * NU) * -cos(RG * MU)))
+#define P2 ((RG * NU) - (sin(GB * MU) * -cos(GB * XI)))
+#define P3 ((GB * MU) - (sin(GB * XI) * -cos(BR * NU)))
 
 #define CHG vec4(P1-P3,  P2-P1,  P3-P2, 0.)
 
