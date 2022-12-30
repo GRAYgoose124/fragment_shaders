@@ -40,8 +40,8 @@ void init_scene(in vec2 uv, inout vec4 col) {
 #define RHO 1.12
 #define DECAY 0.98125
 #define PHI 1.0
-#define S1 (vec4(.87, .87, .87, 0.) * PHI)
-#define S2 (vec4(.13, .13, .13, 0.) * PHI)
+#define S1 (vec4(Ts, .87, .87, 0.) * PHI)
+#define S2 (vec4(.13, Tc, .13, 0.) * PHI)
 #define S3 (vec4(.13, .13, .13, 0.) * PHI)
 
     //// Field Definition
