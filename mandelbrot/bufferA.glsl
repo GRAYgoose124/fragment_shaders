@@ -13,7 +13,7 @@ int get_nearest_root(vec2 z){
     return index;
 }
 
-#define ITER_MAX 250
+#define ITER_MAX 1000
 int mandelbrot(vec2 p){
     float x0 = p.x, y0 = p.y;
     float x = 0., y = 0.;
@@ -32,7 +32,7 @@ int mandelbrot(vec2 p){
 
 float hash(int n){ return fract(sin(float(n))*136.5453123); }
 
-// color palette map
+// coloring using iter as a hash into a palette function
 vec3 hash_color(int i){
     float max = float(ITER_MAX);
     float r = mod(hash(i), float(ITER_MAX));
@@ -44,12 +44,13 @@ vec3 hash_color(int i){
 
 void mainImage(out vec4 fragColor, in vec2 fragCoord){
     // scale math space
-    vec2 z = scale(fragCoord.xy, iResolution.xy, mat2(-2., 0.47, -1.12, 1.12)); 
+    float ZOOM = abs(sin(iTime*0.001));
+    vec2 z = vec2(-1.5+ZOOM, 0.) + scale(fragCoord.xy, iResolution.xy, mat2(-2., 0.47, -1.12, 1.12)*ZOOM); 
     
     // mandelbrot 
     int iter = mandelbrot(z);
 
-    // coloring using iter as a hash into a palette function
+    // color
     vec3 col = hash_color(iter);
     fragColor = vec4(col, 1.);
     fragColor = vec4(hueShift(col, cos(iTime)), 1.);

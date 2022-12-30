@@ -44,7 +44,7 @@ vec4 filter3x3(in vec2 pos, in vec3 kernel, in sampler2D channel, in vec2 reso) 
 
 
     // Sobel
-#define SOBEL_EDGE_COLOR vec4(0.753,0.380,0.796,1.)
+#define SOBEL_EDGE_COLOR vec4(0.,0.,0.,1.)
 vec4 sobel(in vec2 pos, in sampler2D channel, in vec2 reso) {
     // 
     mat3 SX = mat3( 1.0,  2.0,  1.0, 
