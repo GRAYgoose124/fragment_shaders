@@ -42,10 +42,11 @@ vec3 hash_color(int i){
     return vec3(r, g, b);
 }
 
+#define Z_SPD 0.1
+#define ZOOM sin(iTime*Z_SPD)
 void mainImage(out vec4 fragColor, in vec2 fragCoord){
     // scale math space
-    float ZOOM = abs(sin(iTime*0.001));
-    vec2 z = vec2(-1.5+ZOOM, 0.) + scale(fragCoord.xy, iResolution.xy, mat2(-2., 0.47, -1.12, 1.12)*ZOOM); 
+    vec2 z = vec2(-2.5+ZOOM/sin(iTime*Z_SPD), 0.) + scale(fragCoord.xy, iResolution.xy, mat2(-2., 0.47, -1.12, 1.12)*(.1/ZOOM)); 
     
     // mandelbrot 
     int iter = mandelbrot(z);
@@ -53,5 +54,5 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord){
     // color
     vec3 col = hash_color(iter);
     fragColor = vec4(col, 1.);
-    fragColor = vec4(hueShift(col, cos(iTime)), 1.);
+    //fragColor = vec4(hueShift(col, cos(iTime)), 1.);
 }
