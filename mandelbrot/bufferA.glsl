@@ -5,10 +5,7 @@
 
 
 #define Z_SPD 0.001
-#define Z_SCALE .1
-#define ZOOM (sin(iTime*Z_SPD)*Z_SCALE)
-
-#define MZOOM (ZOOM*10.)
+#define ZOOM sin(iTime*Z_SPD)
 
 precision highp float;
 
@@ -39,13 +36,6 @@ vec3 hash_color(int i){
     return vec3(r, g, b);
 }
 
-// vec3 hueShift(vec3 color, float hue){
-//     vec3 lch = rgb2lch(color);
-//     lch.z += hue;
-//     lch.z = mod(lch.z, 1.);
-//     return lch2rgb(lch);
-// }
-
 vec3 lch2rgb(vec3 lch){
     float l = lch.x;
     float c = lch.y;
@@ -66,44 +56,6 @@ vec3 lch2rgb(vec3 lch){
     return vec3(r, g, B);
 }
 
-// vec3 hsv2rgb(vec3 hsv){
-//     float h = hsv.x;
-//     float s = hsv.y;
-//     float v = hsv.z;
-
-//     float c = v * s;
-//     float x = c * (1. - abs(mod(h * 6., 2.) - 1.));
-
-//     float m = v - c;
-//     float r = 0., g = 0., b = 0.;
-
-//     if (h < 1. / 6.) {
-//         r = c;
-//         g = x;
-//     } else if (h < 2. / 6.) {
-//         r = x;
-//         g = c;
-//     } else if (h < 3. / 6.) {
-//         g = c;
-//         b = x;
-//     } else if (h < 4. / 6.) {
-//         g = x;
-//         b = c;
-//     } else if (h < 5. / 6.) {
-//         r = x;
-//         b = c;
-//     } else {
-//         r = c;
-//
-
-// vec3 hsv2rgb(vec3 hsv){
-//     float h = hsv.x;
-//     float s = hsv.y;
-//     float v = hsv.z;
-
-//     float c = v * s;
-//     float x = c * (1. - abs(mod(h * 6., 2.) - 1.));
-
 vec3 iter2lch(float iter){
     float s = iter/float(ITER_MAX);
     float v = 1.0 - pow(cos(PI * s), 2.0);
@@ -114,10 +66,11 @@ vec3 iter2lch(float iter){
 
 void mainImage(out vec4 fragColor, in vec2 fragCoord){
     // scale math space -1.41855
-    vec2 z = vec2(-1.711425+ZOOM, 0.) + scale(fragCoord.xy, iResolution.xy, mat2(-2., 0.47, -1.12, 1.12)*ZOOM*100.); 
+    vec2 z = scale(fragCoord.xy-iMouse.xy, iResolution.xy, mat2(-2., 0.47, -1.12, 1.12)*ZOOM); 
+    z += vec2(-1.45, 0.);
     #ifdef MOUSE
     if (iMouse.z > 0.0) {
-        vec2 m = scale(iMouse.xy, iResolution.xy, mat2(-2., 0.47, -1.12, 1.12)*MZOOM);
+        vec2 m = scale(iMouse.xy, iResolution.xy, mat2(-2.*10., 0.47*10., -1.12*5., 1.12*5.)*ZOOM);
         z -= m;
     }
     #endif
@@ -135,6 +88,8 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord){
 
         iter++;
     }
+
+
 
     // stop for points that don't escape
     if (int(iter) == ITER_MAX) {
