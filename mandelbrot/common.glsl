@@ -1,4 +1,6 @@
 #define NROOTS 3
+#define PI 3.1415926535
+
 vec2 roots[NROOTS];
 
 #define SCALE(v, mx, a, b) (a + (v * (b - a) / mx))
