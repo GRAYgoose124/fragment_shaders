@@ -16,7 +16,7 @@ void mainImage( out vec4 O, in vec2 fragCoord )
     vec4 G1 = filter3x3(fragCoord.xy, GAUSSIAN, iChannel1, iResolution.xy);
 
     vec4 F0 = -L0 * (2.-C0);
-    vec4 col = (sin(iTime*1.1)*0.5)*S0+2.*abs(cos(iTime*0.9)+1.)*F0;
+    vec4 col = (sin(iTime*1.1)*0.5)*S0*C0/G0+abs(cos(iTime*0.9))*(F0+G0);
     //col = col + cos(iTime)*C0*((G0 + G1) * 0.5);
     
     #ifdef TV_COLOR
