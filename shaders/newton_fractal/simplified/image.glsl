@@ -2,5 +2,6 @@
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
-    fragColor = texelFetch(iChannel0, ivec2(fragCoord.xy), 0);
+    vec2 ab = fragCoord.xy / iResolution.xy;
+    fragColor = texelFetch(iChannel0, ivec2(ab.xy), 0)*cos(iTime);
 }

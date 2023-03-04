@@ -46,8 +46,10 @@ class FragRunner(arcade.Window):
         self.ctx.copy_framebuffer(self.fbo, self.ctx.screen)
     
     def __update_uniforms(self, shader):
-        shader['iTime'] = time.time() - self.start_time
-
+        try:
+            shader['iTime'] = time.time() - self.start_time
+        except:
+            pass
         return shader
 
     def __add_default_uniforms(self, shader):
@@ -76,15 +78,19 @@ class FragRunner(arcade.Window):
             # self.textures is a list of the names of texture uniforms the pass uses.
             # These texture uniforms are the render targets of the previous pass by the same name.
             self.textures[k] = v['textures']
+
+            # self.passes is a list of real shader `Program`s for each pass. We prob need to create a texture object for each.
             self.passes[k] = program
 
         print(passes['image']['source'])
 
         # Set the default uniforms
         for p in self.passes.values():
-            self.__add_default_uniforms(p)
-
-        print(self.passes['image'].uniforms)
+            try:
+                self.__add_default_uniforms(p)
+            except KeyError:
+                logger.debug(f"Pass {p} has no iTime or iResolution uniforms")
+        print(self.passes['image']._uniforms)
         return self
 
 
@@ -154,6 +160,10 @@ def parse_image_passes(shader: Path, passes=None) -> dict:
         elif "fragCoord" in line:
             # Replace fragCoord with uv, this is arcade's default FBO texture coordinate.
             valid_shader += f"{line.replace('fragCoord', 'uv')}\n"
+
+        elif "uv" in line:
+            # Replace uv with _uv internally, this is arcade's default FBO texture coordinate.
+            valid_shader += f"{line.replace('uv', '_uv')}\n"
 
         else:
             # Just emit the line as-is.
