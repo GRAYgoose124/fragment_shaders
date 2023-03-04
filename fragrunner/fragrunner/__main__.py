@@ -43,7 +43,6 @@ class FragRunner(arcade.Window):
             self.quad_fs.render(self.passes['image'])
 
 
-
         self.ctx.copy_framebuffer(self.fbo, self.ctx.screen)
     
     def __update_uniforms(self, shader):
@@ -74,6 +73,8 @@ class FragRunner(arcade.Window):
                 fragment_shader=v['source'],
             )
 
+            # self.textures is a list of the names of texture uniforms the pass uses.
+            # These texture uniforms are the render targets of the previous pass by the same name.
             self.textures[k] = v['textures']
             self.passes[k] = program
 
@@ -113,9 +114,11 @@ def parse_image_passes(shader: Path, passes=None) -> dict:
     # default uniforms
     valid_shader += "uniform float iTime;\n"
     valid_shader += "uniform vec2 iResolution;\n"
+
+    # parse source pass
     for line in shader.read_text().splitlines():
-        # Parse out iChannels
         if line.lstrip().startswith("#iChannel"):
+            # Parse out iChannels for texture uniforms binding.
             logger.debug(f"Found iChannel in {shader.stem}: {line}")
 
             channel, path = line.split(" ", 1)
@@ -123,26 +126,37 @@ def parse_image_passes(shader: Path, passes=None) -> dict:
             if path.startswith("file://"):
                 if path[7:] != shader.name:
                     parse_image_passes(shader.parent / path[7:], passes)
-                    passes[shader.stem]['textures'][channel] = path[7:]
                 else:
-                    passes[shader.stem]['textures'][channel] = path[7:]
                     # probably need to use/bind a texture around here (conceptually) still...
                     logger.debug(f"Skipping iChannel: {shader.stem} {line}")
+                passes[shader.stem]['textures'][channel] = path[7:].split(".")[0]
             else:
                 logger.debug(f"Incompatible iChannel pre-processor: {shader.stem} {line}")
 
             valid_shader += f"\nuniform sampler2D {channel[1:]};\n"
+
         elif line.lstrip().startswith("#include"):
+            # Include shader "headers" - GLSL has no #include directive.
+
+            # TODO: Need to handle recursive includes - for now we're just assuming a common.glsl 
+            # include and no others - like Shadertoy.
             logger.debug(f"Found include: {shader.stem} {line}")
             include = shader.parent / line.split(" ", 1)[1].strip('"')
             valid_shader += include.read_text() + "\n"
+
         elif line.lstrip().startswith("void mainImage("):
+            # Replace the mainImage function with the main function.
+            # This helps ensures well-formed source code for each pass and conforms to ShaderToy's API.
             logger.debug(f"Found mainImage: {shader.stem} {line}")
             valid_shader += "in vec2 uv;\nout vec4 fragColor;\n"
             valid_shader += "void main()" + ("{\n" if "{" in line else "\n")
+
         elif "fragCoord" in line:
+            # Replace fragCoord with uv, this is arcade's default FBO texture coordinate.
             valid_shader += f"{line.replace('fragCoord', 'uv')}\n"
+
         else:
+            # Just emit the line as-is.
             valid_shader += f"{line}\n"
 
     passes[shader.stem]['source'] = valid_shader
