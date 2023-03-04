@@ -16,45 +16,50 @@ class FragRunner(arcade.Window):
 
         self.start_time = time.time()
 
-
-        self.textures = {}
-        self.passes = {}
-
-        self.tex = self.ctx.texture((self.width, self.height))
-
         self.quad_fs = arcade.gl.geometry.quad_2d_fs()
-        self.fbo = self.ctx.framebuffer(color_attachments=[self.tex])
-
-        self.fbo.clear(arcade.color.ALMOND)
-        with self.fbo:
-            arcade.draw_circle_filled(width // 2, height // 2, 100, arcade.color.AFRICAN_VIOLET)
+        self.channels = {}
+        self.passes = {}
+        self.fbos = {}
 
         self._program = None
             
     def on_draw(self):
         arcade.start_render()
 
-        for k, p in self.passes.items():
+        # Run the shader passes
+        for k, prog in sorted(self.passes.items()):
             # Update the uniforms
-            self.__update_uniforms(p)
+            self.__update_uniforms(prog)
+       
+            # bind the framebuffer for this pass
+            with self.fbos[k]:
+                # bind the textures channels for this pass
+                for id, name in enumerate(self.channels[k]):
+                    if name != 'image':
+                        self.fbos[name].color_attachments[0].use(id)
+                    
+                # render current pass to it's framebuffer
+                self.quad_fs.render(prog)
 
-        with self.fbo:
-            self.tex.use(0)
-            self.quad_fs.render(self.passes['image'])
-
-
-        self.ctx.copy_framebuffer(self.fbo, self.ctx.screen)
+        # render the final image to the screen
+        self.ctx.copy_framebuffer(self.fbos['image'], self.ctx.screen)
     
     def __update_uniforms(self, shader):
         try:
-            shader['iTime'] = time.time() - self.start_time
+            shader['iTime'] = (time.time() - self.start_time) * 0.1
+            shader['iFrame'] += 1
         except:
             pass
+
         return shader
 
     def __add_default_uniforms(self, shader):
-        shader['iTime'] = time.time() - self.start_time
-        shader['iResolution'] = (self.width, self.height)
+        try:
+            shader['iTime'] = - self.start_time
+            shader['iResolution'] = (self.width, self.height)
+            shader['iFrame'] = 0
+        except KeyError:
+            logger.debug(f"Pass {shader} has no iTime or iResolution uniforms")
 
         return shader
     
@@ -68,33 +73,32 @@ class FragRunner(arcade.Window):
         logger.debug(f"Passes: {list(passes.keys())} {len(passes)}\n{[(k, v['textures']) for k, v in passes.items()]}")
 
         # Create the main program - each pass should be a new program with textures bound appropriately on draw.
-
         for k, v in passes.items():
             program = self.ctx.program(
                 vertex_shader=vertex_shader.read_text(),
                 fragment_shader=v['source'],
             )
 
-            # self.textures is a list of the names of texture uniforms the pass uses.
+            # self.channels is a list of the names of texture uniforms the pass uses.
             # These texture uniforms are the render targets of the previous pass by the same name.
-            self.textures[k] = v['textures']
+            self.channels[k] = [t for t in v['textures'].values()]
 
             # self.passes is a list of real shader `Program`s for each pass. We prob need to create a texture object for each.
             self.passes[k] = program
+            self.fbos[k] = self.ctx.framebuffer(color_attachments=[self.ctx.texture((self.width, self.height))])
 
-        print(passes['image']['source'])
+            logger.debug(f"Created pass {k} with channels {self.channels[k]}")
 
         # Set the default uniforms
         for p in self.passes.values():
-            try:
-                self.__add_default_uniforms(p)
-            except KeyError:
-                logger.debug(f"Pass {p} has no iTime or iResolution uniforms")
-        print(self.passes['image']._uniforms)
+            self.__add_default_uniforms(p)
+
+        # init framebuffer
+
         return self
 
 
-def parse_image_passes(shader: Path, passes=None) -> dict:
+def parse_image_passes(shader: Path, passes=None, visited=None) -> dict:
     """ Parse a shader file and return a dictionary of passes. 
     
     Each pass is a dictionary with the following keys:
@@ -109,7 +113,9 @@ def parse_image_passes(shader: Path, passes=None) -> dict:
     """
     if passes is None:
         passes = {}
-    
+    if visited is None:
+        visited = set()
+
     if shader.stem not in passes:
         passes[shader.stem] = {
             'textures': {},
@@ -130,12 +136,11 @@ def parse_image_passes(shader: Path, passes=None) -> dict:
             channel, path = line.split(" ", 1)
             path = path.strip('"')
             if path.startswith("file://"):
-                if path[7:] != shader.name:
-                    parse_image_passes(shader.parent / path[7:], passes)
-                else:
-                    # probably need to use/bind a texture around here (conceptually) still...
-                    logger.debug(f"Skipping iChannel: {shader.stem} {line}")
-                passes[shader.stem]['textures'][channel] = path[7:].split(".")[0]
+                if path[7:] not in visited:
+                    visited.add(path[7:])
+                    parse_image_passes(shader.parent / path[7:], passes, visited)
+          
+                passes[shader.stem]['textures'][int(channel[-1])] = path[7:].split(".")[0]
             else:
                 logger.debug(f"Incompatible iChannel pre-processor: {shader.stem} {line}")
 
@@ -148,6 +153,7 @@ def parse_image_passes(shader: Path, passes=None) -> dict:
             # include and no others - like Shadertoy.
             logger.debug(f"Found include: {shader.stem} {line}")
             include = shader.parent / line.split(" ", 1)[1].strip('"')
+            # TODO: Need to factor out parse_image_passes from actual shader parsing..
             valid_shader += include.read_text() + "\n"
 
         elif line.lstrip().startswith("void mainImage("):
