@@ -1,3 +1,5 @@
+#include "common.glsl"
+
 #iChannel0 "file://bufferA.glsl"
 #iChannel1 "file://bufferB.glsl"
 
