@@ -1,4 +1,4 @@
-#iChannel0 "file://bufferA.glsl"
+#iChannel0 "file://bufferB.glsl"
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
