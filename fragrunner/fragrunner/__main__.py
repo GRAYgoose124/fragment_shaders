@@ -17,32 +17,29 @@ class FragRunner(arcade.Window):
         self.start_time = time.time()
 
         self.quad_fs = arcade.gl.geometry.quad_2d_fs()
-        self.channels = {}
         self.passes = {}
-        self.fbos = {}
-
-        self._program = None
             
     def on_draw(self):
         arcade.start_render()
 
         # Run the shader passes
-        for k, prog in sorted(self.passes.items()):
+        for k, pss in sorted(self.passes.items()):
+            prog = pss['prog']
+
             # Update the uniforms
             self.__update_uniforms(prog)
        
             # bind the framebuffer for this pass
-            with self.fbos[k]:
+            with self.passes[k]['fbo']:
                 # bind the textures channels for this pass
-                for id, name in enumerate(self.channels[k]):
-                    if name != 'image':
-                        self.fbos[name].color_attachments[0].use(id)
+                for id, name in enumerate(self.passes[k]['channels']):
+                    self.passes[name]['fbo'].color_attachments[0].use(id)
                     
                 # render current pass to it's framebuffer
                 self.quad_fs.render(prog)
 
         # render the final image to the screen
-        self.ctx.copy_framebuffer(self.fbos['image'], self.ctx.screen)
+        self.ctx.copy_framebuffer(self.passes['image']['fbo'], self.ctx.screen)
     
     def __update_uniforms(self, shader):
         try:
@@ -81,17 +78,17 @@ class FragRunner(arcade.Window):
 
             # self.channels is a list of the names of texture uniforms the pass uses.
             # These texture uniforms are the render targets of the previous pass by the same name.
-            self.channels[k] = [t for t in v['textures'].values()]
 
             # self.passes is a list of real shader `Program`s for each pass. We prob need to create a texture object for each.
-            self.passes[k] = program
-            self.fbos[k] = self.ctx.framebuffer(color_attachments=[self.ctx.texture((self.width, self.height))])
+            self.passes[k] = {'prog': program,
+                              'fbo': self.ctx.framebuffer(color_attachments=[self.ctx.texture((self.width, self.height))]),
+                              'channels': list(v['textures'].values())}
 
-            logger.debug(f"Created pass {k} with channels {self.channels[k]}")
+            logger.debug(f"Created pass {k} with channels {self.passes[k]}")
 
         # Set the default uniforms
         for p in self.passes.values():
-            self.__add_default_uniforms(p)
+            self.__add_default_uniforms(p['prog'])
 
         # init framebuffer
 
@@ -163,6 +160,8 @@ def parse_image_passes(shader: Path, passes=None, visited=None) -> dict:
         elif line.lstrip().startswith("void mainImage("):
             # Replace the mainImage function with the main function.
             # This helps ensures well-formed source code for each pass and conforms to ShaderToy's API.
+            # TODO: Right now there is a hidden uv that can be used, but it's not obvious
+            #  - most shadertoy code goes fragCoord / iRes... We're also not using the defined IO in mainImage yet.
             logger.debug(f"Found mainImage: {shader.stem} {line}")
             valid_shader += "in vec2 uv;\nout vec4 fragColor;\n"
             valid_shader += "void main()" + ("{\n" if "{" in line else "\n")
@@ -191,7 +190,7 @@ def main():
 
     shader_root = Path(args.program_root)
 
-    app = FragRunner(800, 600, "FragRunner")
+    app = FragRunner(1920, 1080, "FragRunner")
     app.setup(shader_root)
 
     arcade.run()
