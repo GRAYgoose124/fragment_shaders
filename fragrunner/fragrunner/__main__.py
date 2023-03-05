@@ -15,6 +15,7 @@ class FragRunner(arcade.Window):
         arcade.set_background_color(arcade.color.AMAZON)
 
         self.start_time = time.time()
+        self.iMouse = [0, 0, 0, 0]
 
         self.quad_fs = arcade.gl.geometry.quad_2d_fs()
         self.passes = {}
@@ -41,10 +42,14 @@ class FragRunner(arcade.Window):
         # render the final image to the screen
         self.ctx.copy_framebuffer(self.passes['image']['fbo'], self.ctx.screen)
     
+    def on_mouse_motion(self, x, y, dx, dy):
+        self.iMouse = [x, y, dx, dy]
+
     def __update_uniforms(self, shader):
         try:
             shader['iTime'] = (time.time() - self.start_time)
             shader['iFrame'] += 1
+            shader['iMouse'] = self.iMouse
         except:
             pass
 
@@ -55,6 +60,7 @@ class FragRunner(arcade.Window):
             shader['iTime'] = - self.start_time
             shader['iResolution'] = (self.width, self.height)
             shader['iFrame'] = 0
+            shader['iMouse'] = [0, 0, 0, 0]
         except KeyError:
             logger.debug(f"Pass {shader} has no iTime or iResolution uniforms")
 
@@ -123,6 +129,8 @@ def parse_image_passes(shader: Path, passes=None, visited=None) -> dict:
     # default uniforms
     valid_shader += "uniform float iTime;\n"
     valid_shader += "uniform vec2 iResolution;\n"
+    valid_shader += "uniform int iFrame;\n"
+    valid_shader += "uniform vec4 iMouse;\n\n"
 
     # parse source pass
     for line in shader.read_text().splitlines():
@@ -154,7 +162,7 @@ def parse_image_passes(shader: Path, passes=None, visited=None) -> dict:
             logger.debug(f"Found include: {shader.stem} {line}")
             include = shader.parent / line.split(" ", 1)[1].strip('"')
             # TODO: Need to factor out parse_image_passes from actual shader parsing..
-            guard_str = lambda body: f"#ifndef {include.stem.upper()}_H\n#define {include.stem.upper()}_H\n{body}\n#endif"
+            guard_str = lambda body: f"#ifndef {include.stem.upper()}_H\n#define {include.stem.upper()}_H\n{body}\n\n#endif\n"
             valid_shader += guard_str(include.read_text())
 
         elif line.lstrip().startswith("void mainImage("):

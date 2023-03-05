@@ -5,5 +5,8 @@ Here is a collection of my fragment shaders and glsl library code I have written
     cd fragrunner
     poetry install
 
-    cd ../shaders/newton_fractal/simplified
+    cd ../shaders/mandelbrot/psychedelic
     fragrunner
+
+## 
+![](https://raw.githubusercontent.com/GRAYgoose124/fragment_shaders/python_runner/screenshots/mandel.png)
