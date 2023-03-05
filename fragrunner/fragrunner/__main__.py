@@ -46,7 +46,7 @@ class FragRunner(arcade.Window):
     
     def __update_uniforms(self, shader):
         try:
-            shader['iTime'] = (time.time() - self.start_time) * 0.1
+            shader['iTime'] = (time.time() - self.start_time)
             shader['iFrame'] += 1
         except:
             pass
@@ -129,6 +129,9 @@ def parse_image_passes(shader: Path, passes=None, visited=None) -> dict:
 
     # parse source pass
     for line in shader.read_text().splitlines():
+        if "fragCoord" in line:
+            line = line.replace("fragCoord", "gl_FragCoord")
+
         if line.lstrip().startswith("#iChannel"):
             # Parse out iChannels for texture uniforms binding.
             logger.debug(f"Found iChannel in {shader.stem}: {line}")
@@ -154,7 +157,8 @@ def parse_image_passes(shader: Path, passes=None, visited=None) -> dict:
             logger.debug(f"Found include: {shader.stem} {line}")
             include = shader.parent / line.split(" ", 1)[1].strip('"')
             # TODO: Need to factor out parse_image_passes from actual shader parsing..
-            valid_shader += include.read_text() + "\n"
+            guard_str = lambda body: f"#ifndef {include.stem.upper()}_H\n#define {include.stem.upper()}_H\n{body}\n#endif"
+            valid_shader += guard_str(include.read_text())
 
         elif line.lstrip().startswith("void mainImage("):
             # Replace the mainImage function with the main function.
@@ -162,15 +166,6 @@ def parse_image_passes(shader: Path, passes=None, visited=None) -> dict:
             logger.debug(f"Found mainImage: {shader.stem} {line}")
             valid_shader += "in vec2 uv;\nout vec4 fragColor;\n"
             valid_shader += "void main()" + ("{\n" if "{" in line else "\n")
-
-        elif "fragCoord" in line:
-            # Replace fragCoord with uv, this is arcade's default FBO texture coordinate.
-            valid_shader += f"{line.replace('fragCoord', 'uv')}\n"
-
-        elif "uv" in line:
-            # Replace uv with _uv internally, this is arcade's default FBO texture coordinate.
-            valid_shader += f"{line.replace('uv', '_uv')}\n"
-
         else:
             # Just emit the line as-is.
             valid_shader += f"{line}\n"
