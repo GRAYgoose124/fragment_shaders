@@ -2,7 +2,7 @@
 #iUniform float hisT_S = 1.0 in { 0.01, 1.0 }
 #include "common.glsl"
 
-#define POINTS 1
+#define POINTS 0
 
 #define MOUSE_REL 0
 #define RELATIVE 0
@@ -24,11 +24,11 @@ vec2 coord(in vec2 p){
     //p += vec2(.25, .0);
 
     #if MOUSE_REL
-    p += ZOOM*(Mouse.xy - vec2(.5));
+    p += ZOOM*(iMouse.xy - vec2(.5));
     #endif
 
     #if RELATIVE
-    p += roots[int(floor(mod(cos(uTime*0.05), float(NROOTS))))] + p/2.;
+    p += roots[int(floor(mod(cos(iTime*0.05), float(NROOTS))))] + p/2.;
     #endif
 
     #if MASS_REL
@@ -118,9 +118,9 @@ void setup(){
 void gui(inout vec3 col){
     #if POINTS
     for(int i=0;i<NROOTS;i++){
-        col = draw_point(col, coord(gl_FragCoord.xy), roots[i], 0.00001);
+        col = draw_point(col, coord(fragCoord.xy), roots[i], 0.00001);
     }
-    //col = draw_point(col, fragCoord.xy, iMouse.xy, 5.);
+    col = draw_point(col, fragCoord.xy, iMouse.xy, 5.);
     #endif
 }
 
@@ -128,7 +128,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
     setup();
 
-    vec2 orig_z = coord(gl_FragCoord.xy);
+    vec2 orig_z = coord(fragCoord.xy);
     vec2 z = orig_z;
 
     vec3 col = vec3(0.);

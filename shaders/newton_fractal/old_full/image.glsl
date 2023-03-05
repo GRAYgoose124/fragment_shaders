@@ -32,7 +32,6 @@
 
 vec2 roots[NROOTS];
 vec3 colors[NROOTS];
-vec2 uv;
 // fractal iter & scaling
 vec2 newton_iter(in vec2 z){
     vec2 sum = vec2(0.);
@@ -386,12 +385,12 @@ vec3 fractal_pass(vec2 pos){
 void mainImage(out vec4 fragColor, in vec2 fragCoord){
     space_setup();
     
-    vec3 col = fractal_pass(fragCoord);
+    vec3 col = fractal_pass(fragCoord.xy);
    
     // Add root visualization
     #if POINTS
     for(int i=0;i<NROOTS;i++){
-        col = draw_point(col, get_coord(fragCoord), roots[i], 0.00001);
+        col = draw_point(col, get_coord(fragCoord.xy), roots[i], 0.00001);
     }
     col = draw_point(col, fragCoord.xy, iMouse.xy, 5.);
     #endif

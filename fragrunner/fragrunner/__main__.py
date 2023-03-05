@@ -33,11 +33,12 @@ class FragRunner(arcade.Window):
         arcade.start_render()
 
         # Run the shader passes
-        for k, pss in sorted(self.passes.items()):
-            prog = pss['prog']
+        for k, sp in sorted(self.passes.items()):
+            prog = sp['prog']
 
             # Update the uniforms
-            self.__update_uniforms(prog)
+            self.__update_default_uniforms(sp)
+
        
             # bind the framebuffer for this pass
             with self.passes[k]['fbo']:
@@ -62,26 +63,30 @@ class FragRunner(arcade.Window):
 
         self.__build_passes(self.shader_root)
 
-    def __update_uniforms(self, shader):
+    def __update_default_uniforms(self, shaderpass):
         try:
-            shader['iTime'] = (time.time() - self.start_time)
-            shader['iFrame'] += 1
-            shader['iMouse'] = self.iMouse
+            shaderpass['prog']['iTime'] = (time.time() - self.start_time)
+            shaderpass['prog']['iFrame'] += 1
+            shaderpass['prog']['iMouse'] = self.iMouse
         except:
             pass
 
-        return shader
+        return shaderpass
 
-    def __add_default_uniforms(self, shader):
+    def __add_default_uniforms(self, shaderpass):
         try:
-            shader['iTime'] = - self.start_time
-            shader['iResolution'] = (self.width, self.height)
-            shader['iFrame'] = 0
-            shader['iMouse'] = [0, 0, 0, 0]
-        except KeyError:
-            logger.debug(f"Pass {shader} has no iTime or iResolution uniforms")
+            shaderpass['prog']['iTime'] = - self.start_time
+            shaderpass['prog']['iResolution'] = (self.width, self.height)
+            shaderpass['prog']['iFrame'] = 0
+            shaderpass['prog']['iMouse'] = [0, 0, 0, 0]
 
-        return shader
+            # TODO Need to vary these in update_uniforms
+            for n, v in shaderpass['uniforms']:
+                shaderpass['prog'][n] = v
+        except KeyError:
+            logger.debug(f"Pass {shaderpass} has no iTime or iResolution uniforms")
+
+        return shaderpass
     
     def __build_passes(self, shader_root):
         # Default vertex shader, just pass through the vertex data.
@@ -107,7 +112,7 @@ class FragRunner(arcade.Window):
 
         # Set the default uniforms
         for p in self.passes.values():
-            self.__add_default_uniforms(p['prog'])
+            self.__add_default_uniforms(p)
 
     @staticmethod
     def __parse_image_passes(shader: Path, passes=None, visited=None) -> dict:
@@ -131,6 +136,7 @@ class FragRunner(arcade.Window):
         if shader.stem not in passes:
             passes[shader.stem] = {
                 'textures': {},
+                'uniforms': {},
                 'source': None,
             }
 
@@ -140,6 +146,7 @@ class FragRunner(arcade.Window):
         valid_shader += "uniform vec2 iResolution;\n"
         valid_shader += "uniform int iFrame;\n"
         valid_shader += "uniform vec4 iMouse;\n\n"
+        # extra uniforms
 
         # parse source pass
         for line in shader.read_text().splitlines():
@@ -171,8 +178,22 @@ class FragRunner(arcade.Window):
                 logger.debug(f"Found include: {shader.stem} {line}")
                 include = shader.parent / line.split(" ", 1)[1].strip('"')
                 # TODO: Need to factor out parse_image_passes from actual shader parsing..
-                guard_str = lambda body: f"#ifndef {include.stem.upper()}_H\n#define {include.stem.upper()}_H\n{body}\n\n#endif\n"
+                guard_str = lambda body: f"\n#ifndef {include.stem.upper()}_H\n#define {include.stem.upper()}_H\n\n{body}\n\n#endif\n"
                 valid_shader += guard_str(include.read_text())
+            
+            elif line.lstrip().startswith("#iUniform"):
+                # These are directives that the VScode shadertoy extension uses to define sliders.
+                # We will just define the uniforms and ignore the rest.
+                logger.debug(f"Found iUniform: {shader.stem} {line}")
+                #iUniform float hisT_offset = 0.50 in { 1.0, 100.0 } 
+                _, ty, label_and_val = line.split(" ", 2)
+                name = label_and_val.split(" ", 1)[0]
+                value = label_and_val.split("=", 1)[1].split(" ", 1)[0]
+                
+                # add to the uniform dict for updating later
+                passes[shader.stem]['uniforms'][name] = value
+
+                valid_shader += f"uniform {ty} {name};\n"
 
             elif line.lstrip().startswith("void mainImage("):
                 # Replace the mainImage function with the main function.
@@ -182,6 +203,7 @@ class FragRunner(arcade.Window):
                 logger.debug(f"Found mainImage: {shader.stem} {line}")
                 valid_shader += "in vec2 uv;\nout vec4 fragColor;\n"
                 valid_shader += "void main()" + ("{\n" if "{" in line else "\n")
+                
             else:
                 # Just emit the line as-is.
                 valid_shader += f"{line}\n"
