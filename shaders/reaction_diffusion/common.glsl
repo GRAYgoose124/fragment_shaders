@@ -2,10 +2,6 @@
 //#define MOUSE
 
 // mainImage helpers 
-#define p fragCoord.xy
-#define res iResolution.xy
-#define uv (p / res)
-#define muv (iMouse.xy / res)
 
 // Math Util
 float cms(vec2 c) { 

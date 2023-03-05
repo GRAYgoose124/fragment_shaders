@@ -58,18 +58,18 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     vec2 pos = vec2(0.);
     #endif
     
-    vec2 uv = trunc((fragCoord/iResolution.y + pos) * SCALING);
+    vec2 uv = trunc((fragCoord.xy/iResolution.y + pos) * SCALING);
     
     #ifdef VARYING_COORD
     vec2 pos2 = vec2(cos(t) * VSPD1,  sin(t) * VSPD2) * VSPD3;
-    vec2 uv2 = trunc((fragCoord/iResolution.y + pos2) * SCALING);
+    vec2 uv2 = trunc((fragCoord.xy/iResolution.y + pos2) * SCALING);
     #else
     vec2 uv2 = uv;
     #endif
     
     #ifdef MOUSE_COORD
     vec2 pos2 = vec2(cos(iMouse.x) * VSPD1, sin(iMouse.y) * VSPD2) * VSPD3;
-    uv2 = trunc((fragCoord/iResolution.y + pos2) * SCALING);
+    uv2 = trunc((fragCoord.xy/iResolution.y + pos2) * SCALING);
     #endif
 
     #ifdef MOUSE

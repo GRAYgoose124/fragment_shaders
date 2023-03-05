@@ -54,6 +54,7 @@ vec2 diffuse_react(in vec2 pos){
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord ){
     vec4 col = vec4(0.);
+    vec2 p = fragCoord.xy;
 
     float nA = 0., nB = 0.;
     if (iFrame == 0) {

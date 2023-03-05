@@ -1,0 +1,2 @@
+- #include "common.glsl" can just be automated
+- mainImage needs it's args parsed and adhered to, rather than just default fragCoord/Color

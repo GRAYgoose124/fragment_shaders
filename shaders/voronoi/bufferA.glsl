@@ -48,11 +48,11 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     
     #if POINTS
     for(int i=0;i<N;i++){
-        col = draw_point(col, get_coord(fragCoord), roots(i), 0.00001);
+        col = draw_point(col, get_coord(fragCoord.xy), roots(i), 0.00001);
     }
     #endif
     
-    col += vec3(roots(get_nearest_root(get_coord(fragCoord))), 0.);
+    col += vec3(roots(get_nearest_root(get_coord(fragCoord.xy))), 0.);
     
     fragColor = vec4(col,1.0);
 }

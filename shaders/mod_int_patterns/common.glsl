@@ -1,12 +1,6 @@
 // Utilities
     // macros
-#define RES iResolution.xy
-#define P fragCoord.xy
-#define UV (fragCoord.xy/iResolution.xy)
-#define MUV (iMouse.xy/iResolution.xy)
-
-#define pF(c) texelFetch(c, ivec2(P), 0)
-#define sF(c) texture(c, UV)
+#define pF(c, p) texelFetch(c, p, 0)
 
     // screen
 vec2 wrap(in vec2 p, in vec2 res) {
@@ -29,7 +23,7 @@ vec4 hueShift(vec3 color, float hue) {
     const vec3 k = vec3(0.57735, 0.57735, 0.57735);
     float cosAngle = cos(hue);
     return vec4(vec3(color * cosAngle + cross(k, color) * sin(hue) + k * dot(k, color) * (1.0 - cosAngle)), 0.);
-}
+}   
 
 // math
     //Generic 3x3 filter - vec3(center, edges, diagonals)
@@ -48,7 +42,6 @@ vec4 filter3x3(in vec2 pos, in vec3 kernel, in sampler2D channel, in vec2 reso) 
     
     return sum;
 }
-
 
     // Sobel
 #define SOBEL_EDGE_COLOR vec4(0.847,0.133,0.055,1.)

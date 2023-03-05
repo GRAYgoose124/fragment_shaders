@@ -3,5 +3,5 @@
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
-    fragColor = hueShift(pF(iChannel0).xyz, sin(iTime));
+    fragColor = vec4(texelFetch(iChannel0, ivec2(fragCoord.xy), 0).xyz, 1.0);
 }
