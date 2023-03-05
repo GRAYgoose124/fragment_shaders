@@ -83,8 +83,8 @@ class FragRunner(arcade.Window):
             # TODO Need to vary these in update_uniforms
             for n, v in shaderpass['uniforms']:
                 shaderpass['prog'][n] = v
-        except KeyError:
-            logger.debug(f"Pass {shaderpass} has no iTime or iResolution uniforms")
+        except KeyError as e:
+            logger.debug(f"Pass {shaderpass} has missing uniforms: {e}")
 
         return shaderpass
     
@@ -189,7 +189,9 @@ class FragRunner(arcade.Window):
                 _, ty, label_and_val = line.split(" ", 2)
                 name = label_and_val.split(" ", 1)[0]
                 value = label_and_val.split("=", 1)[1].split(" ", 1)[0]
-                
+                if ty == "color3":
+                    ty = "vec3"
+                    value = (float(v.strip(" "))for v in value.split(","))
                 # add to the uniform dict for updating later
                 passes[shader.stem]['uniforms'][name] = value
 

@@ -57,8 +57,8 @@ vec3 sdBox(vec2 p, vec2 a, vec2 b){
 // vec2 gradient() {}
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
-    vec2 uv = fragCoord/iResolution.xy;
-    vec2 pos = fragCoord;
+    vec2 uv = fragCoord.xy/iResolution.xy;
+    vec2 pos = fragCoord.xy;
     vec2 track = pos - (100.0*cos(iTime)+100.0)*vec2(cos(iTime), sin(iTime));
 
     vec3 col = vec3(0.);

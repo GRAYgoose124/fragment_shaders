@@ -2,17 +2,6 @@
 
 // Utilities
     // macros
-#define RES iResolution.xy
-#define P fragCoord.xy
-#define UV (fragCoord.xy/iResolution.xy)
-
-#define Px (P.x/iResolution.x)
-#define Py (P.y/iResolution.y)
-#define Mx (iMouse.x/iResolution.x)
-#define My (iMouse.y/iResolution.y)
-#define Mxy (iMouse.xy/iResolution.xy)
-
-
     // screen
 vec2 wrap(in vec2 p, in vec2 res) {
     if (p.x > res.x) p.x = mod(p.x, res.x);

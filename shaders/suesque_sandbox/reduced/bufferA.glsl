@@ -3,7 +3,13 @@
 //#define COLOR_PICKER
 
 #include "common.glsl"
-#iChannel0 "self"
+#iChannel0 "file://bufferA.glsl"
+
+#define Px (P.x/iResolution.x)
+#define Py (P.y/iResolution.y)
+#define Mx (iMouse.x/iResolution.x)
+#define My (iMouse.y/iResolution.y)
+#define Mxy (iMouse.xy/iResolution.xy)
 
 // Input Uniforms
 #iUniform float NU = 1.00 in { -1.0, 1.0 } 
@@ -60,10 +66,10 @@ void init_scene(in vec2 uv, inout vec4 col) {
 
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
-    vec4 col = texelFetch(iChannel0, ivec2(P), 0);
+    vec4 col = texelFetch(iChannel0, ivec2(fragCoord.xy), 0);
 
     // Field Pass - Physics
-    vec4 lap = laplacian(P, iChannel0, RES);
+    vec4 lap = laplacian(fragCoord.xy, iChannel0, iResolution.xy);
     col += lap * RHO;
     
     float r = col.x, g = col.y, b = col.z;
@@ -75,10 +81,10 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
         #ifndef DRAW
         col = vec4(0.);
         #else 
-        col += SOURCE(UV, iMouse.xy/iResolution.xy, 0.005, vec4(1., abs(cos(iTime)), abs(sin(iTime)), 0.));
+        col += SOURCE(fragCoord.xy / iResolution.xy, iMouse.xy/iResolution.xy, 0.005, vec4(1., abs(cos(iTime)), abs(sin(iTime)), 0.));
         #endif
         
-        init_scene(UV, col);
+        init_scene(fragCoord.xy / iResolution.xy, col);
     } 
   
     
