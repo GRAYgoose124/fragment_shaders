@@ -15,45 +15,54 @@ class FragRunner(arcade.Window):
         arcade.set_background_color(arcade.color.AMAZON)
 
         self.start_time = time.time()
-
-
-        self.textures = {}
-        self.passes = {}
-
-        self.tex = self.ctx.texture((self.width, self.height))
+        self.iMouse = [0, 0, 0, 0]
 
         self.quad_fs = arcade.gl.geometry.quad_2d_fs()
-        self.fbo = self.ctx.framebuffer(color_attachments=[self.tex])
-
-        self.fbo.clear(arcade.color.ALMOND)
-        with self.fbo:
-            arcade.draw_circle_filled(width // 2, height // 2, 100, arcade.color.AFRICAN_VIOLET)
-
-        self._program = None
+        self.passes = {}
             
     def on_draw(self):
         arcade.start_render()
 
-        for k, p in self.passes.items():
+        # Run the shader passes
+        for k, pss in sorted(self.passes.items()):
+            prog = pss['prog']
+
             # Update the uniforms
-            self.__update_uniforms(p)
+            self.__update_uniforms(prog)
+       
+            # bind the framebuffer for this pass
+            with self.passes[k]['fbo']:
+                # bind the textures channels for this pass
+                for id, name in enumerate(self.passes[k]['channels']):
+                    self.passes[name]['fbo'].color_attachments[0].use(id)
+                    
+                # render current pass to it's framebuffer
+                self.quad_fs.render(prog)
 
-        with self.fbo:
-            self.tex.use(0)
-            self.quad_fs.render(self.passes['image'])
-
-
-
-        self.ctx.copy_framebuffer(self.fbo, self.ctx.screen)
+        # render the final image to the screen
+        self.ctx.copy_framebuffer(self.passes['image']['fbo'], self.ctx.screen)
     
+    def on_mouse_motion(self, x, y, dx, dy):
+        self.iMouse = [x, y, dx, dy]
+
     def __update_uniforms(self, shader):
-        shader['iTime'] = time.time() - self.start_time
+        try:
+            shader['iTime'] = (time.time() - self.start_time)
+            shader['iFrame'] += 1
+            shader['iMouse'] = self.iMouse
+        except:
+            pass
 
         return shader
 
     def __add_default_uniforms(self, shader):
-        shader['iTime'] = time.time() - self.start_time
-        shader['iResolution'] = (self.width, self.height)
+        try:
+            shader['iTime'] = - self.start_time
+            shader['iResolution'] = (self.width, self.height)
+            shader['iFrame'] = 0
+            shader['iMouse'] = [0, 0, 0, 0]
+        except KeyError:
+            logger.debug(f"Pass {shader} has no iTime or iResolution uniforms")
 
         return shader
     
@@ -67,27 +76,32 @@ class FragRunner(arcade.Window):
         logger.debug(f"Passes: {list(passes.keys())} {len(passes)}\n{[(k, v['textures']) for k, v in passes.items()]}")
 
         # Create the main program - each pass should be a new program with textures bound appropriately on draw.
-
         for k, v in passes.items():
             program = self.ctx.program(
                 vertex_shader=vertex_shader.read_text(),
                 fragment_shader=v['source'],
             )
 
-            self.textures[k] = v['textures']
-            self.passes[k] = program
+            # self.channels is a list of the names of texture uniforms the pass uses.
+            # These texture uniforms are the render targets of the previous pass by the same name.
 
-        print(passes['image']['source'])
+            # self.passes is a list of real shader `Program`s for each pass. We prob need to create a texture object for each.
+            self.passes[k] = {'prog': program,
+                              'fbo': self.ctx.framebuffer(color_attachments=[self.ctx.texture((self.width, self.height))]),
+                              'channels': list(v['textures'].values())}
+
+            logger.debug(f"Created pass {k} with channels {self.passes[k]}")
 
         # Set the default uniforms
         for p in self.passes.values():
-            self.__add_default_uniforms(p)
+            self.__add_default_uniforms(p['prog'])
 
-        print(self.passes['image'].uniforms)
+        # init framebuffer
+
         return self
 
 
-def parse_image_passes(shader: Path, passes=None) -> dict:
+def parse_image_passes(shader: Path, passes=None, visited=None) -> dict:
     """ Parse a shader file and return a dictionary of passes. 
     
     Each pass is a dictionary with the following keys:
@@ -102,7 +116,9 @@ def parse_image_passes(shader: Path, passes=None) -> dict:
     """
     if passes is None:
         passes = {}
-    
+    if visited is None:
+        visited = set()
+
     if shader.stem not in passes:
         passes[shader.stem] = {
             'textures': {},
@@ -113,36 +129,52 @@ def parse_image_passes(shader: Path, passes=None) -> dict:
     # default uniforms
     valid_shader += "uniform float iTime;\n"
     valid_shader += "uniform vec2 iResolution;\n"
+    valid_shader += "uniform int iFrame;\n"
+    valid_shader += "uniform vec4 iMouse;\n\n"
+
+    # parse source pass
     for line in shader.read_text().splitlines():
-        # Parse out iChannels
+        if "fragCoord" in line:
+            line = line.replace("fragCoord", "gl_FragCoord")
+
         if line.lstrip().startswith("#iChannel"):
+            # Parse out iChannels for texture uniforms binding.
             logger.debug(f"Found iChannel in {shader.stem}: {line}")
 
             channel, path = line.split(" ", 1)
             path = path.strip('"')
             if path.startswith("file://"):
-                if path[7:] != shader.name:
-                    parse_image_passes(shader.parent / path[7:], passes)
-                    passes[shader.stem]['textures'][channel] = path[7:]
-                else:
-                    passes[shader.stem]['textures'][channel] = path[7:]
-                    # probably need to use/bind a texture around here (conceptually) still...
-                    logger.debug(f"Skipping iChannel: {shader.stem} {line}")
+                if path[7:] not in visited:
+                    visited.add(path[7:])
+                    parse_image_passes(shader.parent / path[7:], passes, visited)
+          
+                passes[shader.stem]['textures'][int(channel[-1])] = path[7:].split(".")[0]
             else:
                 logger.debug(f"Incompatible iChannel pre-processor: {shader.stem} {line}")
 
             valid_shader += f"\nuniform sampler2D {channel[1:]};\n"
+
         elif line.lstrip().startswith("#include"):
+            # Include shader "headers" - GLSL has no #include directive.
+
+            # TODO: Need to handle recursive includes - for now we're just assuming a common.glsl 
+            # include and no others - like Shadertoy.
             logger.debug(f"Found include: {shader.stem} {line}")
             include = shader.parent / line.split(" ", 1)[1].strip('"')
-            valid_shader += include.read_text() + "\n"
+            # TODO: Need to factor out parse_image_passes from actual shader parsing..
+            guard_str = lambda body: f"#ifndef {include.stem.upper()}_H\n#define {include.stem.upper()}_H\n{body}\n\n#endif\n"
+            valid_shader += guard_str(include.read_text())
+
         elif line.lstrip().startswith("void mainImage("):
+            # Replace the mainImage function with the main function.
+            # This helps ensures well-formed source code for each pass and conforms to ShaderToy's API.
+            # TODO: Right now there is a hidden uv that can be used, but it's not obvious
+            #  - most shadertoy code goes fragCoord / iRes... We're also not using the defined IO in mainImage yet.
             logger.debug(f"Found mainImage: {shader.stem} {line}")
             valid_shader += "in vec2 uv;\nout vec4 fragColor;\n"
             valid_shader += "void main()" + ("{\n" if "{" in line else "\n")
-        elif "fragCoord" in line:
-            valid_shader += f"{line.replace('fragCoord', 'uv')}\n"
         else:
+            # Just emit the line as-is.
             valid_shader += f"{line}\n"
 
     passes[shader.stem]['source'] = valid_shader
@@ -166,7 +198,7 @@ def main():
 
     shader_root = Path(args.program_root)
 
-    app = FragRunner(800, 600, "FragRunner")
+    app = FragRunner(1920, 1080, "FragRunner")
     app.setup(shader_root)
 
     arcade.run()
