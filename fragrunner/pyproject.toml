@@ -6,7 +6,7 @@ authors = ["Grayson Miller <grayson.miller124@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.9"
 arcade = "^2.6.17"
 
 

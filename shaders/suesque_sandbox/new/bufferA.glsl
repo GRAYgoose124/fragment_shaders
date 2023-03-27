@@ -3,25 +3,25 @@
 //#define COLOR_PICKER
 
 #include "common.glsl"
-#iChannel0 "self"
+#iChannel0 "file://bufferA.glsl"
 
 // Input Uniforms
-#iUniform float NU = 1.00 in { -1.0, 1.0 } 
-#iUniform float MU = 0.33 in {-1.0, 1.0 } 
-#iUniform float XI = 1.0 in { -1.0, 1.0 }
+#define NU 1.00
+#define MU 0.33 
+#define XI 1.0 
 
-#iUniform float DECAY = 0.01 in { 0.00, 1.00 } 
-#iUniform float PHI = 1.0 in { -1.0, 1.0 } 
-#iUniform float RHO = 1.0 in { 0.0, 1.0 } 
+#define DECAY 0.01
+#define PHI 1.0
+#define RHO 1.0
 
-#iUniform float tS = 0.1 in { 0.1, 1.0 } 
-#iUniform float tSplit = 0.5 in { 0.1, 1.0 } 
+#define tS 0.1
+#define tSplit 0.5
 #define Ts (sin(iTime*tS)*tSplit)
 #define Tc (cos(iTime*tS)*(1.0-tSplit))
 
-#iUniform color3 SC1 = color3(1.0, .0, .0)
-#iUniform color3 SC2 = color3(.0, 1.0, .0)
-#iUniform color3 SC3 = color3(.0, .0, 1.0)
+#define SC1 vec3(1.0, .0, .0)
+#define SC2 vec3(.0, 1.0, .0)
+#define SC3 vec3(.0, .0, 1.0)
 
 // Scene
     //// Setup
@@ -32,6 +32,9 @@ void init_scene(in vec2 uv, inout vec4 col) {
     col += SOURCE(uv, vec2(.5, .75), SRC_SIZE,vec4(0., 1., 0., 0.));
     col += SOURCE(uv, vec2(.66, .33), SRC_SIZE, vec4(0., 0., 1., 0.));
 }
+
+#define Px fragCoord.x
+#define Py fragCoord.y
 
     //// Field Parameters
 #ifdef XY_MAP
@@ -67,10 +70,12 @@ void init_scene(in vec2 uv, inout vec4 col) {
 
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
-    vec4 col = texelFetch(iChannel0, ivec2(P), 0);
+    vec4 col = texelFetch(iChannel0, ivec2(fragCoord.xy), 0); iTime;
+
+    vec2 UV = fragCoord.xy / iResolution.xy;
 
     // Field Pass - Physics
-    vec4 lap = laplacian(P, iChannel0, RES);
+    vec4 lap = laplacian(fragCoord.xy, iChannel0, iResolution.xy);
     col += lap * RHO;
     
     float r = col.x, g = col.y, b = col.z;
@@ -78,12 +83,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
 
     // Init (Post field so we don't get visual noise while the mouse is held.) 
     if (sign(iMouse.z) == 1. || iFrame == 0) {
-        #ifndef DRAW
         col = vec4(0.);
-        #else 
-        col += SOURCE(UV, Mxy, 0.005, vec4(1., abs(Tc), abs(Ts), 0.));
-        #endif
-        
         init_scene(UV, col);
     } 
   
