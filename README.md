@@ -12,7 +12,9 @@ There are a lot of redundant files, as I have not unified a `common.glsl` file.
     cd ../shaders/mandelbrot/psychedelic
     fragrunner
     
-![](https://raw.githubusercontent.com/GRAYgoose124/fragment_shaders/python_runner/screenshots/mandel.png)
+![](https://raw.githubusercontent.com/GRAYgoose124/fragment_shaders/main/screenshots/mandel.png)
+![](https://raw.githubusercontent.com/GRAYgoose124/fragment_shaders/main/screenshots/bulb.png)
+
 
 # Shaders
 Unless otherwise stated, most shaders should run with the VSCode Shadertoy currently.
