@@ -1,32 +1,19 @@
 #iChannel0 "self"
 
 #define TAU 6.2831853
-#define MAX_STEPS 512
-#define MAX_DIST 200.0
-#define EPSILON 0.1
+#define MAX_STEPS 128
+#define MAX_DIST 100.0
+#define EPSILON 0.0001
 
 float sphereSDF(vec3 pos, float r) {
     return length(pos) - r;
 }
 
-float bezierSDF(vec3 pos, vec3 a, vec3 b, vec3 c, vec3 d) {
-    float t = 0.0;
-    float step = 0.1;
-    float minDist = 10000.0;
-    for (int i = 0; i < 100; i++) {
-        vec3 p = pow(1.0 - t, 3.0) * a + 3.0 * pow(1.0 - t, 2.0) * t * b + 3.0 * (1.0 - t) * t * t * c + t * t * t * d;
-        float dist = length(pos - p);
-        minDist = min(minDist, dist);
-        t += step;
-    }
-    return minDist;
-}
-
-
-float hopfFibrationSDF(vec3 pos) {
+// Draws a single sphereSDF along a fiber knot
+float hopfFibrationSDF(vec3 pos, float offset) {
     float t = TAU * iTime * 0.1;
-    float c = cos(t);
-    float s = sin(t);
+    float c = cos(t + offset);
+    float s = sin(t + offset);
 
     float r1 = sqrt(dot(pos.xy, pos.xy) + pos.z * pos.z);
     float r2 = sqrt(dot(pos.xz, pos.xz) + pos.y * pos.y);
@@ -53,20 +40,32 @@ float hopfFibrationSDF(vec3 pos) {
     return sphereSDF(pos - h, r);
 }
 
-float trace(vec3 origin, vec3 direction) {
+// Draw the entire knot as a union of hopfFibrationSDFs
+float knotSDF(vec3 pos, float offset) {
+    float d = 10.0;
+    float t = 0.0;
+    float step = 0.01;
+    for (int i = 0; i < 50; i++) {
+        float dist = hopfFibrationSDF(pos, float(i) * TAU / 50.0 + offset);
+        d = min(d, dist);
+        t += step;
+    }
+    return d;
+}
+
+float trace(vec3 origin, vec3 direction, float offset) {
     float dist = 0.0;
     for (int i = 0; i < MAX_STEPS; i++) {
         vec3 pos = origin + dist * direction;
-        float d = hopfFibrationSDF(pos);
+        float d = knotSDF(pos, offset);
         if (d < EPSILON) {
             return dist;
         }
         dist += d;
-        if (dist > MAX_DIST) {
-            return 0.0;
+        if (dist >= MAX_DIST) {
+            return -1.0;
         }
     }
-    return 0.0;
 }
 
 vec3 hsv2rgb(vec3 hsv) {
@@ -83,24 +82,28 @@ vec3 getColorForStep(float step) {
 vec3 pathTrace(vec3 origin, vec3 direction) {
     vec3 color = vec3(0.0);
     vec3 attenuation = vec3(1.0);
-    for (int i = 0; i < 50; i++) {
-        float dist = trace(origin, direction);
-        if (dist <= 0.0) {
-            break;
-        }
-        vec3 pos = origin + dist * direction;
-        vec3 normal = normalize(vec3(
-            trace(pos, vec3(1.0, -EPSILON, 0.0)) - trace(pos, vec3(-1.0, -EPSILON, 0.0)),
-            trace(pos, vec3(0.0, 1.0, 0.0)) - trace(pos, vec3(0.0, -1.0, 0.0)),
-            trace(pos, vec3(0.0, 0.0, 1.0)) - trace(pos, vec3(0.0, 0.0, -1.0))
-        ));
-        vec3 newOrigin = pos + EPSILON * normal;
-        vec3 newDirection = normalize(reflect(direction,  normal));
-        color += attenuation * getColorForStep(float(i));
-        attenuation *= vec3(0.5);
-        origin = newOrigin;
-        direction = newDirection;
+    
+    int i = 0;
+
+    float dist = trace(origin, direction, float(i));
+    if (dist < 0.0) {
+        return color;
     }
+    
+    vec3 pos = origin + dist * direction;
+    vec3 normal = normalize(vec3(
+        trace(pos, vec3(1.0, -EPSILON, 0.0), float(i)) - trace(pos, vec3(-1.0, -EPSILON, 0.0), float(i)),
+        trace(pos, vec3(0.0, 1.0, 0.0), float(i)) - trace(pos, vec3(0.0, -1.0, 0.0), float(i)),
+        trace(pos, vec3(0.0, 0.0, 1.0), float(i)) - trace(pos, vec3(0.0, 0.0, -1.0), float(i))
+    ));
+
+    vec3 newOrigin = pos + EPSILON * normal;
+    vec3 newDirection = normalize(reflect(direction,  normal));
+    color += attenuation * getColorForStep(float(i));
+    attenuation *= vec3(0.5);
+    origin = newOrigin;
+    direction = newDirection;
+    
     return color;
 }
 
