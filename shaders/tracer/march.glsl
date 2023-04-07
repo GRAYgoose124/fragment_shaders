@@ -1,4 +1,5 @@
 #include "scene.glsl"
+
 #define MAX_STEPS 32
 #define MAX_DISTANCE 100.0
 #define SURFACE_DISTANCE 0.001
