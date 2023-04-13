@@ -1,3 +1,6 @@
+#ifndef SDF_H
+#define SDF_H
+#include "common.glsl"
 // Utils
 vec3 rotateX(vec3 p, float theta) {
     float c = cos(theta);
@@ -51,3 +54,4 @@ float torusSDF(vec3 p, vec3 center, float r1, float r2) {
 //     }
 //     return minDist;
 // }
+#endif

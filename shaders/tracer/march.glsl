@@ -1,7 +1,7 @@
 #include "scene.glsl"
 
 #define MAX_STEPS 32
-#define MAX_DISTANCE 100.0
+#define MAX_DISTANCE 1000.0
 #define SURFACE_DISTANCE 0.001
 
 const vec3 lightPos = vec3(5.0, 5.0, -5.0);
