@@ -4,7 +4,7 @@
 
 
 // math scale screen space and center
-#define SS(p) (p.xy / R.xy * 2.0 - 1.0)
+#define SS(p) (2. * p / R.xy - vec2(0.5))
 
 #define A(U) texture(iChannel0, U)
 #define B(U) texture(iChannel1, U)
