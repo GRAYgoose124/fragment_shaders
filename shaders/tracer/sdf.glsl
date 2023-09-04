@@ -1,24 +1,7 @@
 #ifndef SDF_H
 #define SDF_H
 #include "common.glsl"
-// Utils
-vec3 rotateX(vec3 p, float theta) {
-    float c = cos(theta);
-    float s = sin(theta);
-    return vec3(p.x, c*p.y - s*p.z, s*p.y + c*p.z);
-}
-
-vec3 rotateY(vec3 p, float theta) {
-    float c = cos(theta);
-    float s = sin(theta);
-    return vec3(c*p.x - s*p.z, p.y, s*p.x + c*p.z);
-}
-
-vec3 rotateZ(vec3 p, float theta) {
-    float c = cos(theta);
-    float s = sin(theta);
-    return vec3(c*p.x - s*p.y, s*p.x + c*p.y, p.z);
-}
+#include "sdf_utils.glsl"
 
 // SDFs
 float sphereSDF(vec3 p, vec3 center, float radius) {

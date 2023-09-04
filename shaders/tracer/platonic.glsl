@@ -2,7 +2,7 @@
 #define PLATONIC_H
 #include "sdf.glsl"
 
-const float phi = 1.618;
+#define phi 1.618
 const vec3 icosahedron[12] = vec3[](
     vec3(-1.0,  phi, 0.0),
     vec3( 1.0,  phi, 0.0),

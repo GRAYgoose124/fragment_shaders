@@ -1,3 +1,4 @@
+#define SCENE_ROTATE
 #include "march.glsl"
 
 //#define KALEIDOSCOPE
