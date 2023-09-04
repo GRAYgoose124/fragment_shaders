@@ -27,15 +27,14 @@ float PyrroleSDF(vec3 p, float radius) {
 }
 
 float IndoleSDF(vec3 p, float radius) {
-    // first draw Benzene
-    float d = BenzeneSDF(p, radius);
+    // first draw Benzene rotated
+    float d = BenzeneSDF(rotateZ(p, PI / 2.0), radius);
     // translate the pyrrole to the right of the benzene
-    vec3 p2 = p - vec3(2.0, 1.0, 0.0);
-    p2 = rotateZ(p2, PI/4.0);
-    d = min(d, PyrroleSDF(p2, radius));
-
+    d = min(d, PyrroleSDF(p - vec3(radius * 1.53, 0.0, 0.0), radius*.835));
     return d;
-}
+}    
+
+
 
 
 // Like ChainSDF, but with a complex molecule instead of a linear chain of spheres
