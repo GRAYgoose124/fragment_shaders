@@ -7,13 +7,13 @@ const vec3 lightColor = vec3(1.0, 1.0, 1.0);
 const vec3 lightPos = vec3(50.0, 10.0, -20.0);
 const float lightIntensity = .8;
 
-//#define SCENE_ROTATE
+#define SCENE_ROTATE
 float sceneSDF(vec3 p) {
 #ifdef SCENE_ROTATE
     if (iMouse.z < 0.0) {
-        p = rotateX(p, iTime*0.01);
-        p = rotateY(p, iTime*0.01);
-        p = rotateZ(p, iTime*0.01);
+        p = rotateX(p, iTime*0.1);
+        p = rotateY(p, iTime*0.1);
+        p = rotateZ(p, iTime*0.1);
     }
     else {
         p = rotateX(p, iMouse.x*0.01);
@@ -28,7 +28,7 @@ float sceneSDF(vec3 p) {
     return d;
 }
 
-#define SURFACE_DISTANCE 0.0001
+#define SURFACE_DISTANCE 0.01
 vec3 estimateNormal(vec3 p, float d) {
     vec3 n = vec3(
         d - sceneSDF(vec3(p.x + SURFACE_DISTANCE, p.y, p.z)),
@@ -40,7 +40,7 @@ vec3 estimateNormal(vec3 p, float d) {
 
 #define MAX_STEPS 512
 #define MAX_DISTANCE 150.0
-#define MAX_BOUNCES 2
+#define MAX_BOUNCES 5
 vec3 traceRay(vec3 ro, vec3 rd) {
     float t = 0.0;
     vec3 accumulatedColor = vec3(0.0);
@@ -82,7 +82,7 @@ vec3 traceRay(vec3 ro, vec3 rd) {
                 ro = pos + SURFACE_DISTANCE * normal;
                 rd = reflect(rd, normal);
                 
-                attenuation *= 0.98;
+                attenuation *= 0.9;
                 
                 t = 0.0;
                 for (int j = 0; j < MAX_STEPS; j++) {
