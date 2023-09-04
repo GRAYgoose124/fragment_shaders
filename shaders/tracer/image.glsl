@@ -1,17 +1,17 @@
 #include "march.glsl"
 
-const vec3 camOrigin = vec3(0.0, 0.0, -15.0);
+//#define KALEIDOSCOPE
+const vec3 camOrigin = vec3(0.0, 0.0, -20.0);
 
 void mainImage(out vec4 fragColor, in vec2 Q) {
     vec2 uv = (Q - 0.5 * iResolution.xy) / iResolution.y;
-    // instance uv
+
+#ifdef KALEIDOSCOPE
     uv = mod(uv * uv, 1.0);
-    // change uv so each instance is different angle because mod is different
     float angle = atan(uv.y, uv.x);
     uv = vec2(cos(angle), sin(angle)) * length(uv);
-    
-
+#endif
 
     vec3 rayDir = normalize(vec3(uv, 1.0));
-    fragColor = vec4(traceRay(camOrigin, rayDir), 1.);  // Pass the rotation matrix
+    fragColor = vec4(traceRay(camOrigin, rayDir), 1.);
 } 

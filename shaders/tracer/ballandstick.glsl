@@ -17,14 +17,8 @@ float AromaticRingSDF(vec3 p, float radius, int nSides) {
 }
 
 #define BenzeneSDF(p, radius) AromaticRingSDF(p, radius, 6)
+#define PyrroleSDF(p, radius) AromaticRingSDF(p, radius, 5)
 
-float PyrroleSDF(vec3 p, float radius) {
-    // first draw an aromatic ring
-    float d = AromaticRingSDF(p, radius, 5);
-    // then draw a nitrogen atom
-    //d = min(d, sphereSDF(p, vec3(0.0, 0.0, 0.0), 0.6));
-    return d;
-}
 
 float IndoleSDF(vec3 p, float radius) {
     // first draw Benzene rotated
