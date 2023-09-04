@@ -36,8 +36,18 @@ float FullereneSDF(vec3 p){
 
 
 float sceneSDF(vec3 p) {
-    p = rotateY(p, cos(iTime*0.1)*2.0 * PI / 5.0);
+    // if not mouse
+    if (iMouse.z < 0.0) {
+        p = rotateX(p, iTime);
+        p = rotateY(p, iTime);
+    }
+    else {
+        p = rotateX(p, iMouse.y);
+        p = rotateY(p, iMouse.x);
+    }
 
     float d = IndoleSDF(p, 2.0);
     return d;
 }
+
+
