@@ -2,11 +2,16 @@
 
 const vec3 camOrigin = vec3(0.0, 0.0, -15.0);
 
-void mainImage(out vec4 fragColor, in vec2 fragCoord) {
-    vec2 uv = (fragCoord - 0.5 * iResolution.xy) / iResolution.y;
+void mainImage(out vec4 fragColor, in vec2 Q) {
+    vec2 uv = (Q - 0.5 * iResolution.xy) / iResolution.y;
+    // instance uv
+    uv = mod(uv * uv, 1.0);
+    // change uv so each instance is different angle because mod is different
+    float angle = atan(uv.y, uv.x);
+    uv = vec2(cos(angle), sin(angle)) * length(uv);
+    
 
-    vec2 theta = vec2(0.);
 
     vec3 rayDir = normalize(vec3(uv, 1.0));
     fragColor = vec4(traceRay(camOrigin, rayDir), 1.);  // Pass the rotation matrix
-}
+} 

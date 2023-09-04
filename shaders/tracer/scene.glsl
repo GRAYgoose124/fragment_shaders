@@ -18,12 +18,10 @@ const vec3 icosahedron[12] = vec3[](
 );
 
 
-float FullereneSDF(vec3 p){
+float FullerenaSDF(vec3 p){
     // stack benzene rings around an icosahedron
     // https://en.wikipedia.org/wiki/Fullerene
     float d = 1e20;
-
-   // rotate p with time and cos
 
     for (int i = 0; i < 100; i++) {
         if (i % 2 == 0)     
@@ -36,16 +34,19 @@ float FullereneSDF(vec3 p){
 
 
 float sceneSDF(vec3 p) {
-    // if not mouse
     if (iMouse.z < 0.0) {
         p = rotateX(p, iTime);
         p = rotateY(p, iTime);
+        p = rotateZ(p, iTime);
     }
     else {
-        p = rotateX(p, iMouse.y);
-        p = rotateY(p, iMouse.x);
+        p = rotateX(p, 0.01*iMouse.y);
+        p = rotateY(p, 0.01*iMouse.x);
+        p = rotateZ(p, 0.01*iMouse.y);
     }
 
+    //float d = IndoleSDF(p, 2.0);
+    // lets do instanced repetition in xyz
     float d = IndoleSDF(p, 2.0);
     return d;
 }

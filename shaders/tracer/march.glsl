@@ -4,10 +4,10 @@
 #define MAX_DISTANCE 100.0
 #define SURFACE_DISTANCE 0.0001
 
-#define DIFFUSE_COLOR vec3(1.0, 0.7, 0.5)
-#define SPECULAR_COLOR vec3(1.0, 1.0, 1.0)
+const DIFFUSE_COLOR = vec3(1.0, 0.7, 0.5);
+const SPECULAR_COLOR = vec3(1.0, 1.0, 1.0);
 
-const vec3 lightPos = vec3(50.0, 10.0, -20.0);
+const lightPos = vec3(50.0, 10.0, -20.0);
 const float lightIntensity = .8;
 
 vec3 estimateNormal(vec3 p, float d) {
