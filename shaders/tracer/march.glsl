@@ -38,9 +38,11 @@ vec3 estimateNormal(vec3 p, float d) {
     return -normalize(n);
 }
 
-#define MAX_STEPS 512
-#define MAX_DISTANCE 150.0
+#define MAX_STEPS 128
+#define MAX_DISTANCE 500.0
 #define MAX_BOUNCES 5
+#define SHADOW_DISTANCE 1.5
+#define ATTENUATE_FACTOR 0.5
 vec3 traceRay(vec3 ro, vec3 rd) {
     float t = 0.0;
     vec3 accumulatedColor = vec3(0.0);
@@ -54,16 +56,15 @@ vec3 traceRay(vec3 ro, vec3 rd) {
             for (int bounces = 0; bounces < MAX_BOUNCES; bounces++) {
                 vec3 normal = estimateNormal(pos, dist);
                 
-                // Shadow ray marching from point to light
                 float shadowFactor = 1.0;
                 vec3 toLight = normalize(lightPos - pos);
-                vec3 shadowRayOrigin = pos + SURFACE_DISTANCE * toLight;
+                vec3 shadowRayOrigin = pos + SHADOW_DISTANCE * toLight;
                 float shadowT = 0.0;
                 
                 for (int j = 0; j < MAX_STEPS; j++) {
                     vec3 shadowPos = shadowRayOrigin + shadowT * toLight;
                     float shadowDist = sceneSDF(shadowPos);
-                    if (shadowDist < SURFACE_DISTANCE) {
+                    if (shadowDist < SHADOW_DISTANCE) {
                         shadowFactor = 0.0;
                         break;
                     }
@@ -82,7 +83,7 @@ vec3 traceRay(vec3 ro, vec3 rd) {
                 ro = pos + SURFACE_DISTANCE * normal;
                 rd = reflect(rd, normal);
                 
-                attenuation *= 0.9;
+                attenuation *= ATTENUATE_FACTOR;
                 
                 t = 0.0;
                 for (int j = 0; j < MAX_STEPS; j++) {
