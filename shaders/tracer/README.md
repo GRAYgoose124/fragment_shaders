@@ -1,0 +1,2 @@
+- Basically, edit sceneSDF in scene.glsl and run shadertoy preview on image.glsl
+  - you can use sdf.glsl, ballandstick.glsl, platonic.glsl, or any other sdflib.glsl in the shaders/tracer folder.

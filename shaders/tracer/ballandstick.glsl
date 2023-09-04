@@ -29,8 +29,6 @@ float IndoleSDF(vec3 p, float radius) {
 }    
 
 
-
-
 // Like ChainSDF, but with a complex molecule instead of a linear chain of spheres
 float DMTMoleculeSDF(vec3 p) {
     // first draw an aromatic ring
