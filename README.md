@@ -14,6 +14,7 @@ There are a lot of redundant files, as I have not unified a `common.glsl` file.
     
 ![](https://raw.githubusercontent.com/GRAYgoose124/fragment_shaders/main/screenshots/mandel.png)
 ![](https://raw.githubusercontent.com/GRAYgoose124/fragment_shaders/main/screenshots/bulb.png)
+![](https://raw.githubusercontent.com/GRAYgoose124/fragment_shaders/main/screenshots/mc.png)
 
 
 # Shaders

@@ -1,4 +1,5 @@
 #iChannel0 "self"
+
 // Utils
 vec3 rotateX(vec3 p, float theta) {
     float c = cos(theta);
@@ -169,8 +170,8 @@ vec3 estimateNormal(vec3 p, float d) {
 #define MAX_STEPS 64
 #define MAX_DISTANCE 150.0
 #define MAX_BOUNCES 5
-#define SHADOW_DISTANCE 1.0
-#define ATTENUATE_FACTOR .9
+#define SHADOW_DISTANCE .01
+#define ATTENUATE_FACTOR .5
 vec3 traceRay(vec3 ro, vec3 rd) {
     float t = 0.0;
     vec3 accumulatedColor = vec3(0.0);
@@ -189,7 +190,7 @@ vec3 traceRay(vec3 ro, vec3 rd) {
                 vec3 shadowRayOrigin = pos + SHADOW_DISTANCE * toLight;
                 float shadowT = 0.0;
                 
-                for (int j = 0; j < 32; j++) {
+                for (int j = 0; j < 2; j++) {
                     vec3 shadowPos = shadowRayOrigin + shadowT * toLight;
                     float shadowDist = sceneSDF(shadowPos);
                     if (shadowDist < SHADOW_DISTANCE) {
@@ -238,18 +239,22 @@ const vec3 camOrigin = vec3(1.5, 0., -5.0);
 
 void mainImage(out vec4 fragColor, in vec2 Q) {
     
-    vec2 uv = (Q - 0.5 * iResolution.xy) / iResolution.y;
-
-    vec2 seed = Q / iResolution.xy + vec2(iTime);
-    vec3 randomVec = vec3(
-        fract(sin(dot(seed, vec2(12.9898, 78.233)))*43758.5453),
-        fract(sin(dot(seed, vec2(63.7264, 12.182)))*15275.1234),
-        fract(sin(dot(seed, vec2(99.132, 41.253)))*11325.1337)
-    );
-
-    vec3 rayDir = normalize(vec3(uv, 1.0) + randomVec * 0.001); 
-    
     vec4 oldColor = texture(iChannel0, Q / iResolution.xy);
+    fragColor = oldColor;
     
-    fragColor = vec4(mix(oldColor.xyz, traceRay(camOrigin, rayDir), 0.005), 1.0);
+    if (iTime < 180. || iMouse.z > 0.){
+        vec2 uv = (Q - 0.5 * iResolution.xy) / iResolution.y;
+
+        vec2 seed = Q / iResolution.xy + vec2(iTime);
+        vec3 randomVec = vec3(
+            fract(sin(dot(seed, vec2(12.9898, 78.233)))*43758.5453),
+            fract(sin(dot(seed, vec2(63.7264, 12.182)))*15275.1234),
+            fract(sin(dot(seed, vec2(99.132, 41.253)))*11325.1337)
+        );
+
+        vec3 rayDir = normalize(vec3(uv, 1.0) + randomVec * 0.001); 
+
+
+        fragColor = vec4(mix(oldColor.xyz, traceRay(camOrigin, rayDir), 0.005), 1.0);
+    }
 }

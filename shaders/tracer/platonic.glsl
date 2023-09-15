@@ -50,7 +50,7 @@ float icosahedronSDF(vec3 p, float scale){
     float d = 1e10;
     d = min(d, icosahedronVertsSDF(p, 1.0, 2.*scale));
     d = min(d, icosahedronEdgesSDF(p, 0.1, 2.*scale));
-    d = min(d, icosahedronFacesSDF(p, 1.0, 2.*scale));
+    //d = min(d, icosahedronFacesSDF(p, 1.0, 2.*scale));
     return d;
 }
 #endif

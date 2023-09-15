@@ -4,7 +4,7 @@ const vec3 DIFFUSE_COLOR = vec3(.5, .3, 0.4);
 const vec3 SPECULAR_COLOR = vec3(1.0, 1.0, 1.0);
 
 const vec3 lightColor = vec3(1.0, 1.0, 1.0);
-const vec3 lightPos = vec3(50.0, 10.0, -20.0);
+const vec3 lightPos = vec3(1000.0, 10.0, -20.0);
 const float lightIntensity = .8;
 
 #define SCENE_ROTATE
@@ -39,10 +39,10 @@ vec3 estimateNormal(vec3 p, float d) {
 }
 
 #define MAX_STEPS 128
-#define MAX_DISTANCE 500.0
-#define MAX_BOUNCES 5
-#define SHADOW_DISTANCE 1.5
-#define ATTENUATE_FACTOR 0.5
+#define MAX_DISTANCE 5000.0
+#define MAX_BOUNCES 4
+#define SHADOW_DISTANCE 1.
+#define ATTENUATE_FACTOR .75
 vec3 traceRay(vec3 ro, vec3 rd) {
     float t = 0.0;
     vec3 accumulatedColor = vec3(0.0);
@@ -61,7 +61,7 @@ vec3 traceRay(vec3 ro, vec3 rd) {
                 vec3 shadowRayOrigin = pos + SHADOW_DISTANCE * toLight;
                 float shadowT = 0.0;
                 
-                for (int j = 0; j < MAX_STEPS; j++) {
+                for (int j = 0; j < 3; j++) {
                     vec3 shadowPos = shadowRayOrigin + shadowT * toLight;
                     float shadowDist = sceneSDF(shadowPos);
                     if (shadowDist < SHADOW_DISTANCE) {
@@ -86,7 +86,7 @@ vec3 traceRay(vec3 ro, vec3 rd) {
                 attenuation *= ATTENUATE_FACTOR;
                 
                 t = 0.0;
-                for (int j = 0; j < MAX_STEPS; j++) {
+                for (int j = 0; j < 32; j++) {
                     pos = ro + t * rd;
                     dist = sceneSDF(pos);
                     if (dist < SURFACE_DISTANCE) {
