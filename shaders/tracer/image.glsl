@@ -1,7 +1,7 @@
 #include "march.glsl"
 
 //#define KALEIDOSCOPE
-const vec3 camOrigin = vec3(0.0, 0.0, -20.0);
+const vec3 camOrigin = vec3(0.0, 0.0, -8.0);
 
 void mainImage(out vec4 fragColor, in vec2 Q) {
     vec2 uv = (Q - 0.5 * iResolution.xy) / iResolution.y;
