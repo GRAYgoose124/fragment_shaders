@@ -59,7 +59,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
     col += lap * RHO;
     
     float r = col.x, g = col.y, b = col.z;
-    col += CHG;
+    col += CHG * DECAY;
     
     if (sign(iMouse.z) == 1. || iFrame == 0) {
         #ifndef DRAW
@@ -73,5 +73,5 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
   
     
   
-    fragColor = col * DECAY;
+    fragColor = col ;
 }

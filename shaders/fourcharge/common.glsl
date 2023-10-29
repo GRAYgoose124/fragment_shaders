@@ -38,3 +38,18 @@ vec4 laplacian(in vec2 pos, in sampler2D channel, in vec2 reso){
     
     return sum;
 }
+
+vec4 lap(in sampler2D c, in vec2 p, in vec2 r) {
+    vec4 sum = vec4(0.0);
+
+    vec2 wrapped = wrap(p, r);
+    vec2 texelSize = 1. / r;
+
+    sum += texture(c, wrapped + vec2(0.0, -texelSize.y));
+    sum += texture(c, wrapped + vec2(-texelSize.x, 0.0));
+    sum -= 4.0 * texture(c, wrapped);
+    sum += texture(c, wrapped + vec2(texelSize.x, 0.0));
+    sum += texture(c, wrapped + vec2(0.0, texelSize.y));
+
+    return sum;
+}
