@@ -1,9 +1,9 @@
-#define MAX_ITER 50
+#define MAX_ITER 5
 
 vec3 getColor(vec3 c) {
-    float r = sin(c.x * 10.0 + iTime * 0.1) * 0.5;
-    float g = cos(c.y * 10.0 + iTime * 0.2) * 0.5;
-    float b = sin(c.z * 10.0 + iTime * 0.3) * 0.5;
+    float r = sin(c.x * 10.0 + iTime * 0.1) * 0.5 + 0.5;
+    float g = cos(c.y * 10.0 + iTime * 0.2) * 0.5 + 0.5;
+    float b = sin(c.z * 10.0 + iTime * 0.3) * 0.5 + 0.5;
     return vec3(r, g, b);
 }
 vec2 rotate(vec2 p, float a) {
@@ -40,7 +40,7 @@ vec3 fractalFlame(vec2 p, float time) {
 }
 
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
-    vec2 uv = (fragCoord.xy / iResolution.xy) * 2.0 - 1.0;
+    vec2 uv = (fragCoord.xy / iResolution.xy) * .5 - .25;
     float time = iTime * 0.1;
     vec3 value = fractalFlame(uv, time);
     fragColor = vec4(getColor(value), 1.0);

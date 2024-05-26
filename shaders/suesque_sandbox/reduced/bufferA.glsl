@@ -6,8 +6,8 @@
 #iChannel0 "self"
 
 // Input Uniforms
-//#iUniform float NU = 1.00 in { -1.0, 1.0 } 
 #iUniform float MU = 0.33 in {-1.0, 1.0 } 
+//#iUniform float NU = 1.00 in { -1.0, 1.0 } 
 //#iUniform float XI = 1.0 in { -1.0, 1.0 }
 
 #iUniform float DECAY = 0.98125 in { 0.00, 1.00 } 
@@ -19,39 +19,26 @@
 //#define Ts (sin(iTime*tS)*tSplit)
 //#define Tc (cos(iTime*tS)*(1.0-tSplit))
 
-// #iUniform color3 S1 = color3(.87, .0, .0)
-// #iUniform color3 S2 = color3(.0, .98, .0)
-// #iUniform color3 S3 = color3(.0, .0, .87)
+#iUniform color3 S1 = color3(.87, .0, .0)
+#iUniform color3 S2 = color3(.0, .98, .0)
+#iUniform color3 S3 = color3(.0, .0, .87)
 
 /// Scene
     //// Setup
 #define SRC_SIZE .015
 #define SOURCE(p, o, r, col) length(o - p) < r ? col : vec4(0.);
-// void init_scene(in vec2 uv, inout vec4 col) {
-//     col += SOURCE(uv, vec2(.25, .25), SRC_SIZE, vec4(1., 0., 0., 0.));
-//     col += SOURCE(uv, vec2(.25, .50), SRC_SIZE,vec4(0., 1., 0., 0.));
-//     col += SOURCE(uv, vec2(.50, .25), SRC_SIZE, vec4(0., 0., 1., 0.));
-// }
-
 void init_scene(in vec2 uv, inout vec4 col) {
     // grid of sources
     for (float x = 0.; x <= 1.; x += 0.1) {
         for (float y = 0.; y <= 1.; y += 0.1) {
-            col += SOURCE(uv, vec2(x, y), SRC_SIZE, vec4(mod(x, 1.), mod(y, 1.), mod(x+y, 2.), 0.));
+            col += SOURCE(uv, vec2(x, y), SRC_SIZE, vec4(mod(x, 1.), mod(y, 1.), mod(x*y, 2.), 0.));
         }   
     }
 }
 
     //// Field Parameters
 // S1|2|3=.87|.13|.13 -> {1: NU 1.0 MU 0.33 RHO 1.0 DECAY 0.9643, 2: NU 1.0 MU 0.33 RHO 1.12, DECAY .98125 }
-//#define NU 1.0
-//#define MU 0.33
-//#define RHO 1.12
-//#define DECAY 0.98125
-//#define PHI 1.0
-#define S1 vec3(.87, .87, .87)
-#define S2 vec3(.13, .13, .13)
-#define S3 vec3(.13, .13, .13)
+
 
     //// Field Definition
 #define OP(a, b, c) ((a * cos(b)) + (a * sin(c)))
@@ -62,9 +49,9 @@ void init_scene(in vec2 uv, inout vec4 col) {
 #define P2 (RG - GB * MU)
 #define P3 (GB - BR * MU)
 
-#define BRCHG (vec3(P1,  P2,  P3).zxy * S1)
-#define RGCHG (vec3(P1,  P2,  P3).xyz * S2)
-#define GBCHG (vec3(P1,  P2,  P3).yzx * S3)
+#define RGCHG (vec3(P1,  P2,  P3).xyz * S1)
+#define GBCHG (vec3(P1,  P2,  P3).yzx * S2)
+#define BRCHG (vec3(P1,  P2,  P3).zxy * S3)
 #define CHG (BRCHG + RGCHG + GBCHG)
 
 
@@ -89,8 +76,8 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
         
         init_scene(UV, col);
     } 
-  
-    
-  
+
+    //col = clamp(col, 0., 1.);
     fragColor = col * DECAY;
+
 }

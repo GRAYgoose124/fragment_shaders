@@ -39,7 +39,7 @@ vec3 estimateNormal(vec3 p,float d){
 
 #define MAX_STEPS 256
 #define MAX_DISTANCE 2500.
-#define MAX_BOUNCES 3
+#define MAX_BOUNCES 4
 #define SHADOW_DISTANCE 1.
 #define ATTENUATE_FACTOR.75
 vec3 traceRay(vec3 ro,vec3 rd){

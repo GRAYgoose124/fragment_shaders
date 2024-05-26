@@ -1,4 +1,3 @@
-
 #define SCALING 10.
 #define SPEED 100.
 
