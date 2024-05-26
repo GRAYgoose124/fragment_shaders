@@ -1,5 +1,8 @@
-//#define DRAW
+#define P fragCoord
+#define R iResolution
+#define UV (P.xy/R.xy)
 
+\
 // Utilities
     // macros
 
