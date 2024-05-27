@@ -26,7 +26,24 @@ float sceneSDF(vec3 p){
     return d;
 }
 
-#define SURFACE_DISTANCE.01
+
+
+#ifdef CARLO_RAYMARCH
+#define MAX_STEPS 1024
+#define MAX_DISTANCE 1000.0
+#define MAX_BOUNCES 15
+#define SHADOW_DISTANCE 1000.0
+#define ATTENUATE_FACTOR 1.0
+#define SURFACE_DISTANCE .00001
+#else
+#define MAX_STEPS 64
+#define MAX_DISTANCE 15.0
+#define MAX_BOUNCES 3
+#define SHADOW_DISTANCE 15.0
+#define ATTENUATE_FACTOR 1.0
+#define SURFACE_DISTANCE .01
+#endif 
+
 vec3 estimateNormal(vec3 p,float d){
     vec3 n=vec3(
         d-sceneSDF(vec3(p.x+SURFACE_DISTANCE,p.y,p.z)),
@@ -35,13 +52,6 @@ vec3 estimateNormal(vec3 p,float d){
     );
     return-normalize(n);
 }
-
-#define MAX_STEPS 128
-#define MAX_DISTANCE 15.0
-#define MAX_BOUNCES 3
-#define SHADOW_DISTANCE 1.0
-#define ATTENUATE_FACTOR .9
-
 vec3 traceRay(vec3 ro, vec3 rd) {
     float t = 0.0;
     vec3 accumulatedColor = vec3(0.0);
@@ -77,7 +87,11 @@ vec3 traceRay(vec3 ro, vec3 rd) {
                 vec3 localColor = shadowFactor * (diffuse * DIFFUSE_COLOR * lightColor + 
                                   specular * SPECULAR_COLOR * lightColor) * lightIntensity;
 
+                #ifdef NORMAL_COLORS
+                accumulatedColor += attenuation * normal * localColor;
+                #else 
                 accumulatedColor += attenuation * localColor;
+                #endif
 
                 rd = reflect(rd, normal);
                 ro = pos + normal * SURFACE_DISTANCE;

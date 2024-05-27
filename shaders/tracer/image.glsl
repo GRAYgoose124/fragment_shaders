@@ -1,7 +1,7 @@
-#include "march.glsl"
-
 #define SCENE_ROTATE
 //#define KALEIDOSCOPE
+#include "march.glsl"
+
 const vec3 camOrigin=vec3(0.,0.,-8.);
 
 void mainImage(out vec4 fragColor,in vec2 Q){

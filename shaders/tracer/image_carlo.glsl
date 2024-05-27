@@ -1,3 +1,5 @@
+#define NORMAL_COLORS
+#define CARLO_RAYMARCH
 #include "march.glsl"
 #iChannel0 "self"
 

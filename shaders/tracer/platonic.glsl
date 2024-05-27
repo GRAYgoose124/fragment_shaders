@@ -29,9 +29,10 @@ float icosahedronSDF(vec3 p,float scale){
         scaledIcoVert=2.*scale*icosahedron[i];// Scaling factor for vertices
         
         // Vertices
+   
         d=min(d,sphereSDF(p,scaledIcoVert,1.));
         
-        for(int j=i+1;j<12;j++){
+        for(int j=i+1;j<12;j+=4){
             scaledIcoEdge=2.*scale*icosahedron[j];// Scaling factor for edges
             
             // Edges
@@ -39,9 +40,9 @@ float icosahedronSDF(vec3 p,float scale){
         }
         
         // Faces
-        // if(i%2==0){
-            //     d=min(d,triangleSDF(p,scaledIcoVert,2.*scale*icosahedron[i+1],2.*scale*icosahedron[(i+2)%12]));
-        // }
+        //if(i%2==0){
+        //    d=min(d,triangleSDF(p,scaledIcoVert,2.*scale*icosahedron[i+1],2.*scale*icosahedron[(i+2)%12]));
+        //}
     }
     
     return d;
