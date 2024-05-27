@@ -14,9 +14,9 @@
 //#define COLOR_PICKER
 
 //// Constants
-#define MU 0.33
-#define RHO   .8
-#define DECAY 0.95
+#define MU 1.0
+#define RHO   .99
+#define DECAY 0.9999
 
 //// Setup
 #define SRC_SIZE .005
@@ -38,9 +38,9 @@ void init_scene(in vec2 uv,inout vec4 F){
 #define S3 (vec4(P.x,P.y,Ts*Tc,0.)*PHI)
 #else
 // DEFAULT
-#define S1 vec4(.87, .87, .87, 0.)
-#define S2 vec4(.13, .13, .13, 0.)
-#define S3 vec4(.13, .13, .13, 0.)
+#define S1 vec4(.44, .23, .33, 0.)
+#define S2 vec4(.22, .44, .33, 0.)
+#define S3 vec4(.33, .21, .44, 0.)
 #endif
 
 //// Field Definition
@@ -54,7 +54,14 @@ void init_scene(in vec2 uv,inout vec4 F){
 #define BRCHG (vec4(P3,  P1,  P2, 0.) * S1)
 #define RGCHG (vec4(P1,  P2,  P3, 0.) * S2)
 #define GBCHG (vec4(P2,  P3,  P1, 0.) * S3)
-#define CHG (BRCHG+RGCHG+GBCHG)
+
+#define CLAMP_MIN -10.0
+#define CLAMP_MAX  10.0
+#define BIAS .0001
+
+// ... (Rest of the field definition remains the same, but clamp the CHG calculation)
+#define CHG clamp(BRCHG+RGCHG+GBCHG, CLAMP_MIN, CLAMP_MAX) 
+
 
 
 
@@ -62,7 +69,7 @@ void mainImage(out vec4 fragColor,in vec2 P){
     vec4 F=_F;
     
 
-    F+=CHG+LAP;
+    F+=CHG+LAP+BIAS;
     
     // Init (Post F so we don't get visual noise while the mouse is held.)
     if(sign(iMouse.z)==1.||iFrame==0){
