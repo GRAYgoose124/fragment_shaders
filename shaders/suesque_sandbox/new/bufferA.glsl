@@ -38,9 +38,9 @@ void init_scene(in vec2 uv,inout vec4 F){
 #define S3 (vec4(P.x,P.y,Ts*Tc,0.)*PHI)
 #else
 // DEFAULT
-#define S1 vec4(.44, .23, .33, 0.)
+#define S1 vec4(.44, .33, .22, 0.)
 #define S2 vec4(.22, .44, .33, 0.)
-#define S3 vec4(.33, .21, .44, 0.)
+#define S3 vec4(.33, .22, .44, 0.)
 #endif
 
 //// Field Definition
